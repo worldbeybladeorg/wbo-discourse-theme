@@ -1,0 +1,28 @@
+// Buddy Emblem overlay (see javascripts/discourse/api-initializers/wbo-buddy-emblem.js).
+// The emblem badge is appended as a sibling of an avatar <img>, inside the
+// avatar's own wrapper (the data-user-card anchor for posts, which boxes just
+// the avatar). Percentage sizing resolves against that box, so one rule works
+// at every avatar size. The badge sits OUTSIDE the avatar's circular crop.
+
+.wbo-buddy-parent {
+  position: relative;
+}
+
+.wbo-buddy-parent > .wbo-buddy-emblem {
+  position: absolute;
+  right: -6%;
+  bottom: -6%;
+  width: 50%;
+  height: 50%;
+  min-width: 0; // defeat any inherited avatar min-sizing
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0; // emblems carry their own shape; don't circle-crop them
+  object-fit: contain;
+  background: transparent;
+  pointer-events: none;
+  z-index: 2; // above the avatar disc within this wrapper
+  // A thin rim so the badge reads against busy or dark avatars.
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.55));
+}
