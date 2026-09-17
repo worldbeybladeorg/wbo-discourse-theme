@@ -6,6 +6,12 @@
 
 .wbo-buddy-parent {
   position: relative;
+  // Box the avatar tightly so the badge's percentage sizing resolves against
+  // the avatar itself. Avatar wrappers are inline anchors (e.g. a.main-avatar),
+  // whose line-box height would otherwise be shorter than the avatar and make
+  // `height: 50%` resolve too small.
+  display: inline-block;
+  line-height: 0;
 }
 
 .wbo-buddy-parent > .wbo-buddy-emblem {
