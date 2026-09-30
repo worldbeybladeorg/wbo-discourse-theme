@@ -132,6 +132,7 @@ div.education {
 
   a.title {
     overflow-wrap: break-word;
+    font-stretch: 110%;
   }
 
   .badge-notification,
@@ -184,10 +185,11 @@ div.education {
   @include custom-card;
   @include custom-card-hover;
 
+  // Topic title: 550 at 110% width, like WordPress's event card titles.
   h2 {
     margin: 0 !important;
-    // Section titles are 600 on WordPress (.browse-event-title et al.).
-    font-weight: 600;
+    font-weight: 550;
+    font-stretch: 110%;
     font-size: var(--font-up-2);
   }
 

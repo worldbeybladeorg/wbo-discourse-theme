@@ -11,10 +11,10 @@
   --d-nav-underline-height: 0;
   --wbo-card-radius: 10px;
 
-  // Card titles are 600 on WordPress (.browse-event-title); pinned for both
-  // read and unread so state doesn't change the weight.
-  --topic-title-font-weight: 600;
-  --topic-title-font-weight--visited: 600;
+  // Topic titles in lists: 550 at 110% width, like WordPress's event card
+  // titles. Pinned for read and unread so state doesn't change the weight.
+  --topic-title-font-weight: 550;
+  --topic-title-font-weight--visited: 550;
 
   // Discourse core's type variables — WordPress's single family.
   --font-family: "Zalando Sans", sans-serif;
