@@ -85,6 +85,10 @@ export default class WboCommunityHeader extends Component {
     });
   }
 
+  get currentSortLabel() {
+    return this.sortOptions.find((o) => o.selected)?.label;
+  }
+
   @action
   setTab(tab) {
     this.tab = tab;
@@ -159,6 +163,11 @@ export default class WboCommunityHeader extends Component {
             <label class="wbo-community-header__sort">
               <span class="sr-only">
                 {{i18n (themePrefix "community_header.sort")}}
+              </span>
+              {{! The visible label; the native select sits invisibly on top
+                  of it, so it opens the OS picker but sizes to the label. }}
+              <span class="wbo-community-header__sort-label" aria-hidden="true">
+                {{this.currentSortLabel}}
               </span>
               <select {{on "change" this.changeSort}}>
                 {{#each this.sortOptions as |opt|}}

@@ -38,6 +38,59 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
+// Phone header buttons (the mockup): a solid orange Create topic and an
+// outlined Discord, sentence case -- not the tonal .btn look, which read too
+// heavy stacked in a narrow header.
+.wbo-community-header .wbo-community-header__actions .btn,
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .btn:hover {
+  height: 44px;
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: none;
+  font-size: var(--font-0);
+  font-weight: 700;
+  font-stretch: normal;
+  text-transform: none;
+}
+
+.wbo-community-header .wbo-community-header__actions .btn-primary,
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .btn-primary:hover {
+  border-color: transparent;
+  background: var(--wbo-orange);
+  color: #151a2c;
+
+  .wbo-icon {
+    color: #151a2c;
+  }
+}
+
+.wbo-community-header .wbo-community-header__actions .wbo-btn-discord,
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .wbo-btn-discord:hover {
+  border-color: var(--redditish-border-color);
+  background: transparent;
+  color: var(--wbo-text);
+
+  .wbo-icon {
+    color: #5865f2;
+  }
+}
+
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .btn:hover {
+  opacity: 0.85;
+}
+
 // ── About panel ─────────────────────────────────────────────────────────────
 // One card, sections split by hairlines -- like Reddit's community sidebar.
 .wbo-about {
@@ -246,25 +299,22 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
       position: relative;
       display: inline-flex;
       align-items: center;
+      gap: 0.25em;
+      height: 40px;
+      padding: 0 0.5em;
       color: var(--wbo-muted);
+      font-size: var(--font-down-1);
+      font-weight: 600;
 
+      // Invisible, covering the label: tapping opens the native picker.
       select {
-        appearance: none;
-        height: 40px;
-        margin: 0;
-        padding: 0 1.5em 0 0.5em;
-        border: 0;
-        background: transparent;
-        color: inherit;
-        font: inherit;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
-      .wbo-icon {
         position: absolute;
-        right: 0;
-        pointer-events: none;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
       }
     }
   }
@@ -298,7 +348,43 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     display: none;
   }
 
+  .list-controls:has(.wbo-community-header) {
+    gap: 0;
+  }
+
   body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create {
     display: none;
   }
+}
+
+// Desktop: the "Create topic" bar and the filter pills read as one card (the
+// mockup), and the fake field is pill-shaped on the page colour. Only where
+// nothing sits between them -- on tablets the Feed/About tabs do.
+@media screen and (width > $wbo-rail-hidden-bp) {
+  .list-controls:has(.custom-post-bar-contents) {
+    gap: 0;
+
+    .custom-post-bar-contents {
+      border-bottom: 0;
+      border-radius: var(--wbo-card-radius) var(--wbo-card-radius) 0 0;
+      padding-bottom: 8px;
+
+      &:hover {
+        border-color: var(--redditish-border-color);
+      }
+    }
+
+    #navigation-bar {
+      border-top: 0;
+      border-radius: 0 0 var(--wbo-card-radius) var(--wbo-card-radius);
+      padding-top: 8px;
+    }
+  }
+}
+
+.custom-post-bar-contents input[type="text"] {
+  height: 44px;
+  padding-inline: 16px;
+  border-radius: 100px;
+  background: var(--wbo-bg);
 }
