@@ -5,9 +5,13 @@ hide_topic_footer_controls:
 nav_items:
   type: string
   textarea: true
-  default: '[{"label":"Tournaments","url":"https://worldbeyblade.org/tournaments/"},{"label":"Leagues","url":"https://leaderboard.fighting-spirits.org/"},{"label":"Community","url":"/","active":true,"isCommunity":true},{"label":"Rules & Resources","url":"https://worldbeyblade.org/rules/beyblade-x-rules/"},{"label":"About WBO","url":"#"}]'
+  default: '[{"label":"Tournaments","url":"https://worldbeyblade.org/tournaments/"},{"label":"Leagues","url":"https://leaderboard.fighting-spirits.org/"},{"label":"Resources","url":"https://worldbeyblade.org/resources/"},{"label":"Community","url":"/","active":true,"isCommunity":true}]'
   description: "Primary nav menu as a JSON array. Each item: {\"label\":\"…\",\"url\":\"…\"}. Add \"active\":true to underline an item, and \"isCommunity\":true on the one item whose mobile drawer entry expands into the category list. Malformed JSON falls back to the built-in default."
 
 buddy_emblem_endpoint:
   default: "https://worldbeyblade.org/wp-json/wbo/v1/buddies"
   description: "WordPress endpoint returning Buddy Emblem art URLs by Discourse username. The theme overlays each poster's chosen Emblem on the bottom-right of their avatar. Leave blank to disable."
+
+wp_base_url:
+  default: "https://worldbeyblade.org"
+  description: "WordPress site URL (no trailing slash). Used for the logo link, the account panel's links, and its data (/wp-json/wbo/v1/user-menu). Set to https://wbo.local on the local dev instance."

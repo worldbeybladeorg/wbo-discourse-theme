@@ -24,8 +24,8 @@ body.category,
 }
 
 #suggested-topics-title {
-  // h3 -> 500 per the Oswald weight rule (700 is h1/h2 only).
-  font-weight: 500;
+  // Section titles are 600 on WordPress (.browse-event-title et al.).
+  font-weight: 600;
 }
 
 .category-breadcrumb {
@@ -186,8 +186,8 @@ div.education {
 
   h2 {
     margin: 0 !important;
-    // h2 -> 500 per the Oswald weight rule (700 is h1 only).
-    font-weight: 500;
+    // Section titles are 600 on WordPress (.browse-event-title et al.).
+    font-weight: 600;
     font-size: var(--font-up-2);
   }
 

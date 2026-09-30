@@ -4,53 +4,12 @@ import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { on } from "@ember/modifier";
 import { concat } from "@ember/helper";
-import { htmlSafe } from "@ember/template";
 import icon from "discourse/helpers/d-icon";
 import { getOwner } from "@ember/application";
 import Composer from "discourse/models/composer";
+import WboUserPanel, { loadMenu } from "../../components/wbo-user-panel";
+import { wboIcon, wpBase } from "../../lib/wbo-icon";
 
-// Inline SVG paths lifted from the WP header.php dropdown so both sides
-// use identical iconography. Stroke inherits currentColor, so drawer/
-// dropdown CSS can recolor as needed. Kept as SafeString values so
-// Glimmer renders them as HTML instead of escaping.
-const _svg = (paths) =>
-  htmlSafe(
-    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" ` +
-      `stroke="currentColor" stroke-width="2" stroke-linecap="round" ` +
-      `stroke-linejoin="round">${paths}</svg>`
-  );
-const ICONS = {
-  trophy: _svg(
-    '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>' +
-      '<path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>' +
-      '<path d="M4 22h16"/>' +
-      '<path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>' +
-      '<path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>' +
-      '<path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>'
-  ),
-  bell: _svg(
-    '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>' +
-      '<path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
-  ),
-  envelope: _svg(
-    '<rect x="2" y="4" width="20" height="16" rx="2"/>' +
-      '<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>'
-  ),
-  gear: _svg(
-    '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/>' +
-      '<circle cx="12" cy="12" r="3"/>'
-  ),
-  sun: _svg(
-    '<circle cx="12" cy="12" r="4"/>' +
-      '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>'
-  ),
-  moon: _svg('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'),
-  logout: _svg(
-    '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>' +
-      '<polyline points="16 17 21 12 16 7"/>' +
-      '<line x1="21" y1="12" x2="9" y2="12"/>'
-  ),
-};
 // Reuse Discourse's own categories section so we get:
 //   - unread/new counts wired to TopicTrackingState (live)
 //   - the user's own sidebar category picks (or top-N fallback)
@@ -70,12 +29,8 @@ import AnonymousCategoriesSection from "discourse/components/sidebar/anonymous/c
 const DEFAULT_NAV_ITEMS = [
   { label: "Tournaments", url: "https://worldbeyblade.org/tournaments/" },
   { label: "Leagues", url: "https://leaderboard.fighting-spirits.org/" },
+  { label: "Resources", url: "https://worldbeyblade.org/resources/" },
   { label: "Community", url: "/", active: true, isCommunity: true },
-  {
-    label: "Rules & Resources",
-    url: "https://worldbeyblade.org/rules/beyblade-x-rules/",
-  },
-  { label: "About WBO", url: "#" },
 ];
 
 export default class WboSiteNav extends Component {
@@ -94,6 +49,7 @@ export default class WboSiteNav extends Component {
     super(...arguments);
 
     this._refreshCounts();
+    this._loadMenuData();
     this._trackingCallbackId = this.topicTrackingState?.onStateChange(() =>
       this._refreshCounts()
     );
@@ -125,22 +81,38 @@ export default class WboSiteNav extends Component {
     document.removeEventListener("keydown", this._closeUserDropdownOnEscape);
   }
 
+  // Outside click closes the account panel and is swallowed, as on
+  // WordPress — on phones the dimmed page around the bottom sheet is the
+  // panel's own shadow, so a tap there must close it rather than follow
+  // whatever link sits underneath.
   _closeUserDropdownOnOutside = (event) => {
     if (!this.isUserDropdownOpen) return;
     const target = event.target;
     if (!target || target.closest?.(".wbo-user-menu-wrap")) return;
+    event.preventDefault();
+    event.stopPropagation();
     this.isUserDropdownOpen = false;
   };
 
   _closeUserDropdownOnEscape = (event) => {
-    if (event.key === "Escape" && this.isUserDropdownOpen) {
+    if (event.key !== "Escape") return;
+    if (this.isUserDropdownOpen) {
       this.isUserDropdownOpen = false;
+    }
+    if (this.isDrawerOpen) {
+      this.isDrawerOpen = false;
     }
   };
 
+  // Close the drawer and the account panel on any route change — covers
+  // taps on category links rendered by Discourse's own CategoriesSection
+  // (we don't own their click handlers) and back/forward navigation.
   _closeOnRouteChange = () => {
     if (this.isDrawerOpen) {
       this.isDrawerOpen = false;
+    }
+    if (this.isUserDropdownOpen) {
+      this.isUserDropdownOpen = false;
     }
   };
 
@@ -214,7 +186,7 @@ export default class WboSiteNav extends Component {
   }
 
   get userAvatarUrl() {
-    return this.currentUser?.avatar_template?.replace("{size}", "45") ?? null;
+    return this.currentUser?.avatar_template?.replace("{size}", "64") ?? null;
   }
 
   get CategoriesSection() {
@@ -351,27 +323,10 @@ export default class WboSiteNav extends Component {
     this.isUserDropdownOpen = false;
   }
 
-  @action
-  toggleTheme() {
-    // Mirrors the WP theme's flip: data-theme on <html>, remembered in
-    // localStorage. Discourse has its own colour-scheme system that this
-    // does NOT touch — kept for visual parity with the WP dropdown and
-    // as a stub the theme-parity work can wire into later.
-    const root = document.documentElement;
-    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
-    root.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("wbo-theme", next);
-    } catch {
-      // Storage may be blocked (private mode, quota); the DOM flip already
-      // gave the click its feedback, so nothing else to do.
-    }
-  }
-
-  // Base URL for cross-side links back into WordPress. Same TODO as the
-  // logo href — swap to https://worldbeyblade.org before deploying.
+  // WordPress's base URL (theme setting wp_base_url) for the logo and every
+  // link back into WordPress.
   get wpBase() {
-    return "http://wbo.local";
+    return wpBase();
   }
 
   // Live counts from Discourse for the pill's activity dot and the
@@ -407,72 +362,29 @@ export default class WboSiteNav extends Component {
     );
   }
 
-  get unreadMessages() {
-    return this.currentUser?.unread_private_messages ?? 0;
+  // Display name + Buddy Emblem for the pill come from the same WordPress
+  // data the account panel reads (see components/wbo-user-panel.gjs).
+  @tracked menuData = null;
+
+  async _loadMenuData() {
+    if (!this.currentUser) {
+      return;
+    }
+    const data = await loadMenu(this.currentUser.username);
+    if (!this.isDestroying && !this.isDestroyed) {
+      this.menuData = data;
+    }
   }
 
-  get unreadReviewables() {
-    return this.currentUser?.reviewable_count ?? 0;
+  get displayName() {
+    return this.menuData?.name || this.currentUser?.username;
   }
 
-  get hasUserActivity() {
-    return (
-      this.unreadNotifications > 0 ||
-      this.unreadMessages > 0 ||
-      this.unreadReviewables > 0
-    );
+  get pillEmblem() {
+    return this.menuData?.emblems?.art || null;
   }
 
-  // Dropdown items, mirroring the WP header's user-menu-dropdown. Order,
-  // labels, icons, and the WP/Discourse-side split match WP one-for-one.
-  // "Preferences (forum)" was removed from both sides.
-  get userDropdownItems() {
-    const u = this.currentUser;
-    if (!u) return [];
-    const username = u.username;
-    return [
-      {
-        key: "tournaments",
-        label: "My Tournaments",
-        href: `${this.wpBase}/tournaments/?going=1`,
-        icon: ICONS.trophy,
-        // Tournament count is a WP-side value; skipping for now per plan.
-      },
-      {
-        key: "notifications",
-        label: "Notifications",
-        href: `/u/${username}/notifications`,
-        icon: ICONS.bell,
-        count: this.unreadNotifications,
-        countVariant: "activity",
-      },
-      {
-        key: "messages",
-        label: "Messages",
-        href: `/u/${username}/messages`,
-        icon: ICONS.envelope,
-        count: this.unreadMessages,
-        countVariant: "activity",
-      },
-      {
-        key: "settings",
-        label: "Settings",
-        href: `${this.wpBase}/settings/`,
-        icon: ICONS.gear,
-      },
-    ];
-  }
-
-  // Expose the theme-toggle + log-out icons to the template.
-  get iconSun() {
-    return ICONS.sun;
-  }
-  get iconMoon() {
-    return ICONS.moon;
-  }
-  get iconLogout() {
-    return ICONS.logout;
-  }
+  icon = (name, size, cls) => wboIcon(name, size, cls);
 
   @action
   createOrReply() {
@@ -493,24 +405,35 @@ export default class WboSiteNav extends Component {
   }
 
   <template>
-    {{! ── Desktop nav bar (covers .d-header at same z-level) ──────────── }}
-    {{! .wbo-site-nav is the full-bleed fixed bar; .wbo-site-nav__inner
-        is the 1200px-max centred content, mirroring WordPress's
-        .site-header / .site-header-inner split. }}
-    <nav class="wbo-site-nav" aria-label="WBO site navigation">
+    {{! ── Nav bar (covers .d-header at the same position) ─────────────── }}
+    {{! Mirrors WordPress header.php: .wbo-site-nav is the full-bleed fixed
+        bar (.site-header), .wbo-site-nav__inner the 1200px-max row
+        (.site-header-inner) — hamburger | logo | links | user. }}
+    <nav class="wbo-site-nav" aria-label="Primary">
       <div class="wbo-site-nav__inner">
-        {{! TODO: swap back to https://worldbeyblade.org before deploying. }}
-        <a href="http://wbo.local" class="wbo-site-nav__logo">
+        {{! Below 960px the links move into the drawer, like WordPress. }}
+        <button
+          {{on "click" this.toggleDrawer}}
+          type="button"
+          class="wbo-hamburger {{if this.isDrawerOpen 'is-open'}}"
+          aria-label={{if this.isDrawerOpen "Close menu" "Open menu"}}
+          aria-expanded={{if this.isDrawerOpen "true" "false"}}
+          aria-controls="wbo-nav-drawer"
+        >
+          {{#if this.isDrawerOpen}}
+            {{this.icon "x-bold" null "wbo-hamburger__icon"}}
+          {{else}}
+            {{this.icon "list-bold" null "wbo-hamburger__icon"}}
+            <span class="wbo-hamburger__label">Menu</span>
+          {{/if}}
+        </button>
+
+        <a href={{this.wpBase}} class="wbo-site-nav__logo">
           {{#if this.logoUrl}}
-            {{! width/height are intrinsic (natural 512x166) so the browser
-                reserves the correct space before the image decodes -- without
-                them, the nav links reflow ~89px on every page load. }}
-            <img
-              src={{this.logoUrl}}
-              alt="WBO"
-              width="108"
-              height="35"
-            />
+            {{! Intrinsic width/height (natural 512x166) so the browser
+                reserves the space before the image decodes -- without them
+                the nav links reflow ~89px on every page load. }}
+            <img src={{this.logoUrl}} alt="WBO" width="108" height="35" />
           {{else}}
             <span class="wbo-site-nav__logo-text">WBO</span>
           {{/if}}
@@ -527,113 +450,48 @@ export default class WboSiteNav extends Component {
 
         <div class="wbo-site-nav__right">
           {{#if this.currentUser}}
-            {{! Pill + custom dropdown — mirrors the WP .user-menu-wrap
-                markup so both sides share the same visual language. The
-                dropdown links out to WP for tournaments/settings and
-                stays on Discourse for notifications/messages/prefs. }}
+            {{! Pill + account panel — WordPress's .user-menu-wrap. }}
             <div class="wbo-user-menu-wrap">
               <button
                 {{on "click" this.toggleUserDropdown}}
                 type="button"
-                class="wbo-user-menu-link
-                  wbo-user-menu-trigger
+                class="wbo-user-menu-link wbo-user-menu-trigger
                   {{if this.isUserDropdownOpen 'is-open'}}"
                 aria-haspopup="true"
                 aria-expanded={{if this.isUserDropdownOpen "true" "false"}}
                 aria-controls="wbo-user-menu-dropdown"
               >
-                <span class="avatar">
-                  <img
-                    src={{this.userAvatarUrl}}
-                    width="32"
-                    height="32"
-                    alt={{this.currentUser.username}}
-                  />
-                </span>
-                <span
-                  class="wbo-user-menu-name"
-                >{{this.currentUser.username}}</span>
-                <span class="wbo-user-menu-caret" aria-hidden="true">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M2 4l3 3 3-3"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                <span class="{{if this.pillEmblem 'wbo-buddy-parent'}}">
+                  <span class="avatar">
+                    <img
+                      src={{this.userAvatarUrl}}
+                      width="32"
+                      height="32"
+                      alt=""
                     />
-                  </svg>
+                  </span>
+                  {{#if this.pillEmblem}}
+                    <img class="wbo-buddy-emblem" src={{this.pillEmblem}} alt="" />
+                  {{/if}}
                 </span>
-                {{#if this.hasUserActivity}}
-                  <span
-                    class="wbo-user-menu-dot"
-                    aria-label="You have unread activity"
-                  ></span>
-                {{/if}}
+                <span class="wbo-user-menu-name">{{this.displayName}}</span>
+                {{! "More" dots, not a caret: the panel opens at the side,
+                    not as a drop-down. }}
+                <span
+                  class="wbo-user-menu-caret wbo-user-menu-panel-icon"
+                  aria-hidden="true"
+                >{{this.icon "dots-three-outline" 18}}</span>
               </button>
 
               {{#if this.isUserDropdownOpen}}
-                <div
-                  class="wbo-user-menu-dropdown"
-                  id="wbo-user-menu-dropdown"
-                  role="menu"
-                >
-                  {{#each this.userDropdownItems as |item|}}
-                    <a
-                      class="wbo-user-menu-item"
-                      role="menuitem"
-                      href={{item.href}}
-                    >
-                      <span class="wbo-user-menu-item-icon">{{item.icon}}</span>
-                      <span class="wbo-user-menu-item-label">{{item.label}}</span>
-                      {{#if item.count}}
-                        <span
-                          class="wbo-user-menu-item-count
-                            {{if item.countVariant (concat 'wbo-user-menu-item-count--' item.countVariant)}}"
-                        >{{item.count}}</span>
-                      {{/if}}
-                    </a>
-                  {{/each}}
-
-                  <div class="wbo-user-menu-divider" role="separator"></div>
-
-                  {{! Theme toggle — WP-parity stub; see toggleTheme. Two
-                      icons ship (sun/moon); CSS shows the one that names
-                      the action a click takes. }}
-                  <button
-                    {{on "click" this.toggleTheme}}
-                    type="button"
-                    class="wbo-user-menu-item wbo-user-menu-theme"
-                    role="menuitem"
-                  >
-                    <span class="wbo-user-menu-item-icon">
-                      <span class="when-dark">{{this.iconSun}}</span>
-                      <span class="when-light">{{this.iconMoon}}</span>
-                    </span>
-                    <span class="wbo-user-menu-item-label when-dark"
-                    >Light mode</span>
-                    <span class="wbo-user-menu-item-label when-light"
-                    >Dark mode</span>
-                  </button>
-
-                  <a
-                    class="wbo-user-menu-item wbo-user-menu-item-secondary"
-                    role="menuitem"
-                    href="/logout"
-                  >
-                    <span class="wbo-user-menu-item-icon">{{this.iconLogout}}</span>
-                    <span class="wbo-user-menu-item-label">Log out</span>
-                  </a>
-                </div>
+                <WboUserPanel @onClose={{this.closeUserDropdown}} />
               {{/if}}
             </div>
 
-            {{! Bell — always visible; opens Discourse's own user menu
-                (notifications tab by default). Sits to the RIGHT of the
-                pill per design. pointerdown/mousedown/touchstart are
-                intercepted at capture-style timing so Discourse's own
-                outside-close (which runs on those events) never fires
-                on a bell tap; click alone drives the toggle. }}
+            {{! Bell — opens Discourse's own notification menu, right of the
+                pill. pointerdown/mousedown/touchstart are intercepted so
+                Discourse's outside-close never fires on a bell tap; click
+                alone drives the toggle. }}
             <button
               {{on "pointerdown" this.bellPointerDown}}
               {{on "mousedown" this.bellPointerDown}}
@@ -647,7 +505,7 @@ export default class WboSiteNav extends Component {
                 "Notifications"
               }}
             >
-              {{icon "bell"}}
+              {{this.icon "bell" 18}}
               {{#if this.unreadNotifications}}
                 <span
                   class="wbo-bell__badge"
@@ -656,8 +514,8 @@ export default class WboSiteNav extends Component {
               {{/if}}
             </button>
           {{else}}
-            {{! Two-button pair on desktop, matching the WP header. Log in
-                is hidden on mobile via SCSS; the drawer carries the pair. }}
+            {{! Join Now + Log in, as on WordPress. Log in moves into the
+                drawer below 720px. }}
             <a href="/signup" class="wbo-site-nav__join">Join Now</a>
             <a href="/login" class="wbo-site-nav__login">Log in</a>
           {{/if}}
@@ -665,36 +523,23 @@ export default class WboSiteNav extends Component {
       </div>
     </nav>
 
-    {{! ── Mobile: hamburger (fixed, overlays Discourse header) ────────── }}
-    {{! template-lint-disable no-invalid-interactive }}
-    <button
-      {{on "click" this.toggleDrawer}}
-      type="button"
-      class="wbo-hamburger {{if this.isDrawerOpen 'is-open'}}"
-      aria-label="Open site navigation"
-      aria-expanded={{if this.isDrawerOpen "true" "false"}}
-    >
-      <span></span><span></span><span></span>
-    </button>
-
-    {{! ── Mobile: slide-in drawer ──────────────────────────────────────── }}
+    {{! ── Drawer (below 960px) ─────────────────────────────────────────── }}
     <div
+      id="wbo-nav-drawer"
       class="wbo-nav-drawer {{if this.isDrawerOpen 'is-open'}}"
       aria-hidden={{if this.isDrawerOpen "false" "true"}}
+      inert={{unless this.isDrawerOpen true}}
     >
-      {{! Logo pinned in the drawer's top strip. The WBO nav-bar logo
-          sits behind the drawer (z-index 1002 vs 1009) so it's hidden
-          when the drawer is open; this fills that empty top strip. }}
-      {{! TODO: swap back to https://worldbeyblade.org before deploying. }}
-      <a href="http://wbo.local" class="wbo-nav-drawer__logo">
+      {{! Logo pinned in the drawer's top strip, as on WordPress. }}
+      <a href={{this.wpBase}} class="wbo-nav-drawer__logo">
         {{#if this.logoUrl}}
-          <img src={{this.logoUrl}} alt="WBO" height="36" />
+          <img src={{this.logoUrl}} alt="WBO" width="111" height="36" />
         {{else}}
           <span class="wbo-nav-drawer__logo-text">WBO</span>
         {{/if}}
       </a>
 
-      <nav>
+      <nav aria-label="Primary mobile">
         {{#each this.navItems as |item|}}
           <a
             href={{item.url}}
@@ -702,7 +547,7 @@ export default class WboSiteNav extends Component {
             {{on "click" this.closeDrawer}}
           >{{item.label}}</a>
 
-          {{! Expand Community in place with Latest / Unread / categories.
+          {{! Community expands in place with Latest / Unread / categories.
               Not an accordion — you're already in the section. }}
           {{#if item.isCommunity}}
             <div class="wbo-nav-drawer__community">
@@ -712,9 +557,6 @@ export default class WboSiteNav extends Component {
                 {{on "click" this.closeDrawer}}
               >
                 <span class="wbo-nav-drawer__sublink-label">Latest</span>
-                {{! Reuses Discourse's own sidebar dot indicator (same
-                    class + icon as the category rows). Existing SCSS
-                    override colours it WBO orange. }}
                 {{#if this.latestBadge}}
                   <span class="sidebar-section-link-suffix icon unread">
                     {{icon "circle"}}
@@ -737,10 +579,8 @@ export default class WboSiteNav extends Component {
                 </a>
               {{/if}}
 
-              {{! Discourse's category section, restyled by our scss.
-                  Reused for counts, permissions, and drift resilience.
-                  "All categories" hidden via scss since the sidebar list
-                  already surfaces every browseable top-level. }}
+              {{! Discourse's own category section — live counts, permissions
+                  and add/rename correctness for free. }}
               <div class="wbo-nav-drawer__categories">
                 <this.CategoriesSection @collapsable={{false}} />
               </div>
@@ -750,8 +590,8 @@ export default class WboSiteNav extends Component {
       </nav>
 
       {{#if this.currentUser.admin}}
-        {{! Admin isn't in Discourse's mobile user menu, so give staff a
-            reachable footer link now that the second toggle is gone. }}
+        {{! Admin isn't in Discourse's mobile user menu; give staff a
+            reachable link now that the second toggle is gone. }}
         <a
           href="/admin"
           class="wbo-nav-drawer__admin"
@@ -766,9 +606,6 @@ export default class WboSiteNav extends Component {
           {{on "click" this.closeDrawer}}
         >Log out</a>
       {{else}}
-        {{! Anonymous drawer footer — Join Now + Log in side by side,
-            mirroring the WP drawer's two-button auth row. Sits directly
-            after the nav items (no margin-top:auto). }}
         <div class="wbo-nav-drawer__auth">
           <a
             href="/signup"
@@ -784,7 +621,6 @@ export default class WboSiteNav extends Component {
       {{/if}}
     </div>
 
-    {{! ── Mobile: backdrop ─────────────────────────────────────────────── }}
     {{#if this.isDrawerOpen}}
       {{! template-lint-disable no-invalid-interactive }}
       <div
@@ -794,7 +630,7 @@ export default class WboSiteNav extends Component {
       ></div>
     {{/if}}
 
-    {{! ── Mobile: sticky create/reply button ─────────────────────────── }}
+    {{! ── Mobile: floating create / reply button ──────────────────────── }}
     <div class="wbo-bottom-bar">
       {{#if this.showCreateButton}}
         <button

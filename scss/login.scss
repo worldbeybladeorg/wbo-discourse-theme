@@ -26,20 +26,19 @@
 // Fix the label globally (it's just as invisible in the signup modal), then
 // re-assert the WBO-BLUE accent from inside core's own ID context so it wins.
 // Blue, not orange, so it reads as the secondary path — the primary "Log In"
-// CTA owns orange. The fill reuses the theme's --btn-fill variable so hover
-// deepens 20% -> 60% exactly like every other button.
+// CTA owns orange. Same fill recipe and hover fade as every other button.
 .btn-social.google_oauth2 {
-  color: var(--primary);
+  color: var(--wbo-btn-ink-secondary);
   // Match the accented-variant label treatment (see common.scss) so the text
   // stays readable once the fill deepens on hover.
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  text-shadow: var(--wbo-btn-text-shadow);
 
   .btn-social-title {
-    color: var(--primary);
+    color: var(--wbo-btn-ink-secondary);
   }
 
   .discourse-no-touch &:hover {
-    color: var(--primary);
+    color: var(--wbo-btn-ink-secondary);
   }
 }
 
@@ -52,15 +51,19 @@
 .password-reset-page {
   #login-buttons .btn-social.google_oauth2 {
     border: 2px solid var(--wbo-blue);
-    background: color-mix(in srgb, var(--wbo-blue) var(--btn-fill, 20%), transparent);
+    background: color-mix(
+      in srgb,
+      var(--wbo-blue) var(--wbo-btn-fill-rest),
+      var(--wbo-btn-fill-base)
+    );
     // Core gives .btn-social the small --d-border-radius; every other WBO
     // button is the --d-button-border-radius pill. Match it.
     border-radius: var(--d-button-border-radius);
   }
 
   .discourse-no-touch #login-buttons .btn-social.google_oauth2:hover {
-    --btn-fill: 60%;
     border-color: var(--wbo-blue);
+    opacity: 0.85;
   }
 }
 

@@ -53,7 +53,7 @@
 .custom-tag-banner {
   h1 a {
     color: var(--primary-low);
-    // Oswald heading -> bold (700). See common.scss font-weight rule.
+    // Headings are bold (700), as on WordPress.
     font-weight: 700;
 
     .d-icon {

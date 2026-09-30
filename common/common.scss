@@ -1,24 +1,24 @@
-// Oswald is used at exactly two weights: 500 for all-caps (uppercased)
-// UI text, 700 for everything else (headings, titles). Rubik carries the
-// body range. (Loading a single Oswald weight to force bold does NOT
-// work -- a locally-installed Oswald supplies every weight regardless of
-// what we @import -- so weights are controlled per-element in CSS below.)
-@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Rubik:wght@400;500;600&display=swap");
+// Zalando Sans, the WordPress theme's one family (functions.php enqueues the
+// same URL): variable weight 200-900 and width 75-125%, which is what the
+// `font-stretch: 110%` headings and buttons lean on.
+@import url("https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap");
 
 :root {
   --d-button-border-radius: 100px;
   --d-nav-pill-border-radius: 100px;
-  --d-input-border-radius: 4px;
+  --d-input-border-radius: 6px;
   --topic-body-width: 900px;
   --d-nav-underline-height: 0;
   --wbo-card-radius: 10px;
 
-  // Topic-list titles that render through Discourse's default markup
-  // (not the .custom-topic-layout h2 cards) aren't h1/h2, so per the
-  // Oswald weight rule they're 500 -- pinned for both read and unread so
-  // state doesn't change the weight.
-  --topic-title-font-weight: 500;
-  --topic-title-font-weight--visited: 500;
+  // Card titles are 600 on WordPress (.browse-event-title); pinned for both
+  // read and unread so state doesn't change the weight.
+  --topic-title-font-weight: 600;
+  --topic-title-font-weight--visited: 600;
+
+  // Discourse core's type variables — WordPress's single family.
+  --font-family: "Zalando Sans", sans-serif;
+  --heading-font-family: "Zalando Sans", sans-serif;
 }
 
 // The WBO nav overlays Discourse's .d-header at position:fixed top:0
@@ -85,6 +85,7 @@ body {
 @import "topic-list";
 @import "user";
 @import "wbo-site-nav";
+@import "wbo-user-menu";
 
 body {
   background: var(--redditish-bg-color);
@@ -283,9 +284,13 @@ html.composer-open #main-outlet {
 }
 
 // ── WBO Typography ────────────────────────────────────────────────────────────
+//
+// WordPress style.css "Base" + "Typography utilities": one family, headings at
+// the browser's bold with line-height 1.15, fixed sizes with one bump at 720px.
 
 body {
-  font-family: "Rubik", sans-serif;
+  font-family: "Zalando Sans", sans-serif;
+  color: var(--wbo-text);
 }
 
 h1,
@@ -300,17 +305,11 @@ h6,
 .fancy-title,
 .topic-title a,
 .category-name {
-  font-family: "Oswald", sans-serif;
-  // Oswald weight rule: 700 for h1 & h2, 500 everywhere else. 500 is the
-  // default here; the h1/h2 override follows the size rules below.
-  font-weight: 500;
+  font-family: "Zalando Sans", sans-serif;
   line-height: 1.15;
   margin-bottom: 8px;
 }
 
-// Fixed heading sizes matching WordPress (style.css:491-497). Overrides
-// Discourse's --font-up-* modular scale where each heading is a ratio of
-// the base rather than a designed value.
 h1 {
   font-size: 32px;
   @media screen and (min-width: 720px) {
@@ -321,8 +320,7 @@ h2 { font-size: 28px; }
 h3 { font-size: 22px; }
 h4 { font-size: 18px; }
 
-// #topic-title h1 needs the same treatment -- it's under an ID selector
-// so the generic h1 rule loses; be explicit.
+// #topic-title h1 is under an ID selector, so the generic h1 rule loses.
 #topic-title h1 {
   font-size: 32px;
   @media screen and (min-width: 720px) {
@@ -330,9 +328,6 @@ h4 { font-size: 18px; }
   }
 }
 
-// Oswald weight 700 for h1 only (and the titles rendered as the page h1:
-// #topic-title h1, .fancy-title inside the topic h1). Everything else
-// Oswald -- h2 included -- stays at the 500 default set above.
 h1,
 #topic-title h1,
 .fancy-title {
@@ -344,7 +339,7 @@ h1,
 .nav-pills > li > a.active,
 .nav-pills > li > button.active {
   background: var(--wbo-orange-dim);
-  color: var(--wbo-orange);
+  color: var(--wbo-orange-text);
 }
 
 // ── Nav pill links ────────────────────────────────────────────────────────────
@@ -354,7 +349,7 @@ h1,
   text-decoration: none !important;
 
   &:not(.active):hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--wbo-fg-rgb), 0.08);
   }
 }
 
@@ -378,14 +373,26 @@ h1,
 
 .btn:not(.btn-icon, [class*="popup-menu-btn"]) {
   --btn-accent: transparent;
-  --btn-fill: 20%;
+  --btn-fill: var(--wbo-btn-fill-rest);
+  --btn-ink: var(--wbo-text);
   // Longhands (not `border` shorthand) so a core hover rule that only
   // re-sets one longhand can't clobber the others by accident. Even so,
   // we still need to re-assert on :hover -- see below.
   border-width: 2px;
   border-style: solid;
   border-color: var(--btn-accent);
-  background: color-mix(in srgb, var(--btn-accent) var(--btn-fill), transparent);
+  // Dark: a translucent wash over whatever is behind. Light: a lighter wash
+  // mixed into the card white (WordPress's tonal light-mode buttons).
+  background: color-mix(
+    in srgb,
+    var(--btn-accent) var(--btn-fill),
+    var(--wbo-btn-fill-base)
+  );
+  font-stretch: 110%;
+}
+
+.btn:not(.btn-icon, [class*="popup-menu-btn"], .btn-flat, .btn-link) {
+  box-shadow: var(--wbo-btn-lift);
 }
 
 // Core's per-variant hover rules use SHORTHAND:
@@ -394,60 +401,52 @@ h1,
 //     background-color: var(--d-button-primary-bg-color--hover);
 //     color: var(--d-button-primary-text-color--hover);
 //   }
-// The shorthand parses to all four border longhands, so our 2px width AND
-// our accent colour get wiped -- the button visibly shrinks 2px and loses
-// its accent on hover. Re-assert the mechanism. `:not(...)` bumps
-// specificity above core's plain `.btn-primary:hover`.
+// which wipes our 2px accent border and fill. WordPress's hover is just
+// `opacity: .85`; re-assert the resting look and fade it.
 .discourse-no-touch
   .btn:not(.btn-icon, [class*="popup-menu-btn"]):hover {
-  // Big fill jump (20% -> 60%) so accented buttons clearly "fill in" on
-  // hover -- 40% over a dark surface was too subtle to read as a state
-  // change.
-  --btn-fill: 60%;
   border-width: 2px;
   border-style: solid;
   border-color: var(--btn-accent);
-  // Two layers so EVERY button shows a hover, not just accented ones:
-  //   - background-image: the accent tint (orange for primary, etc.)
-  //   - background-color: a white wash beneath it
-  // For btn-default (--btn-accent: transparent) the tint layer is
-  // transparent, so the wash is the whole hover -- otherwise default
-  // buttons went transparent -> transparent (no change). The wash
-  // composites correctly on any surface.
-  background-color: rgba(255, 255, 255, 0.1);
-  background-image: linear-gradient(
-    color-mix(in srgb, var(--btn-accent) var(--btn-fill), transparent),
-    color-mix(in srgb, var(--btn-accent) var(--btn-fill), transparent)
+  background: color-mix(
+    in srgb,
+    var(--btn-accent) var(--btn-fill),
+    var(--wbo-btn-fill-base)
   );
+  color: var(--btn-ink);
+  opacity: 0.85;
 }
 
-// Accented button variants. Mirroring WordPress (style.css:416-420), each
-// variant sets ONLY --btn-accent -- the base .btn rule above turns that into
-// the 2px border + translucent fill. Without these, btn-danger / btn-success
-// kept the default transparent accent and rendered invisible (a delete
-// confirmation button you couldn't see).
+// Default (unaccented) buttons have nothing to fade toward, so they take a
+// foreground wash on hover instead.
+.discourse-no-touch .btn-default:hover {
+  background-color: rgba(var(--wbo-fg-rgb), 0.1) !important;
+  opacity: 1;
+}
+
+// Accented variants set ONLY --btn-accent and their label colour, exactly as
+// WordPress does (.btn-primary { --btn-accent: var(--orange) }).
 .btn-primary:not(.btn-icon, [class*="popup-menu-btn"]) {
   --btn-accent: var(--wbo-orange);
+  --btn-ink: var(--wbo-btn-ink-primary);
 }
 .btn-danger:not(.btn-icon, [class*="popup-menu-btn"]) {
-  --btn-accent: var(--danger);
+  --btn-accent: var(--wbo-danger);
+  --btn-ink: var(--wbo-btn-ink-danger);
 }
 .btn-success:not(.btn-icon, [class*="popup-menu-btn"]) {
-  --btn-accent: var(--success);
+  --btn-accent: var(--wbo-success);
+  --btn-ink: var(--wbo-btn-ink-success);
 }
 
-// Shared label treatment for the accented variants: a readable light label
-// over the translucent fill (WP uses color: var(--text) on the base .btn;
-// on this dark-only scheme that's --primary = white).
 .btn-primary:not(.btn-icon, [class*="popup-menu-btn"]),
 .btn-danger:not(.btn-icon, [class*="popup-menu-btn"]),
 .btn-success:not(.btn-icon, [class*="popup-menu-btn"]) {
-  color: var(--primary);
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  color: var(--btn-ink);
+  text-shadow: var(--wbo-btn-text-shadow);
 
   .discourse-no-touch &:hover {
-    // Colour is also clobbered by core's hover shorthand; re-assert.
-    color: var(--primary);
+    color: var(--btn-ink);
   }
 }
 
@@ -469,6 +468,6 @@ h1,
 // looks like a bug on a densely packed dropdown.
 .user-menu-item:focus-visible {
   outline: none;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--wbo-fg-rgb), 0.06);
 }
 

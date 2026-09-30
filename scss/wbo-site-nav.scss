@@ -1,32 +1,31 @@
-// ── WBO Site Navigation ───────────────────────────────────────────────────────
+// ── WBO site navigation ──────────────────────────────────────────────────────
 //
-// Overlay approach: the nav sits at position:fixed top:0 z-index:1002,
-// covering the Discourse .d-header at the same position. We never push
-// .d-header down, so Discourse's --header-offset calculation stays correct
-// and body padding is untouched.
+// A port of WordPress's header (style.css "Site header" + header.php), reading
+// the same tokens (--wbo-* here, generated from WordPress — see
+// tools/sync-wp-tokens.mjs). Where a value below looks arbitrary, it is the
+// WordPress value; change it there first.
 //
+// Overlay approach: the bar sits at position:fixed top:0 z-index:1002 over
+// Discourse's .d-header. We never push .d-header down, so Discourse's own
+// layout maths stays intact; --header-offset is pinned to 56px in common.scss.
+//
+// Breakpoints are WordPress's: the links move into the drawer below 960px;
+// the pill outline, "more" dots and Log in button go below 720px; the display
+// name goes below 480px.
 // ─────────────────────────────────────────────────────────────────────────────
 
-$wbo-nav-bg: #00143c;
 $wbo-nav-height: 56px;
-// 719px matches WordPress's drawer breakpoint (WP shows the full nav at
-// >=720). The theme was switching to the hamburger at 768, so 720-767px
-// viewports showed a hamburger on the forum and the full nav on WP.
-$wbo-nav-mobile-breakpoint: 719px;
+$wbo-nav-drawer-bp: 959px; // WordPress: hamburger below 960
+$wbo-nav-mobile-breakpoint: 719px; // WordPress: pill/Log-in changes below 720
 
-// .d-header-wrap is the real stacking-context root at z-index:1000. It is
-// the parent of .d-header AND the menu / sidebar panels, so no descendant
-// (no matter the z-index) can paint above the WBO nav at 1002 while it
-// stays at 1000. Lift the wrap itself above the WBO nav, then hide the
-// visible header row so the bar doesn't show.
+// ── Discourse's own header, hidden under ours ────────────────────────────────
 
+// .d-header-wrap is the stacking-context root at z-index:1000, and the parent
+// of .d-header AND its menu panels. Lift it above the WBO bar so Discourse's
+// panels (the notification menu the bell opens) can paint above it, and make
+// the bar itself click-through.
 .d-header-wrap {
-  // Sits above every WBO element (bar 1002, hamburger 1010, drawer 1009)
-  // so Discourse menu panels can paint above all of it.
   z-index: 1100 !important;
-
-  // …but the bar itself shouldn't catch clicks meant for the WBO nav
-  // underneath. Panels re-enable pointer-events below.
   pointer-events: none;
 }
 
@@ -35,12 +34,10 @@ $wbo-nav-mobile-breakpoint: 719px;
   border: none !important;
   box-shadow: none !important;
 
-  // Hide the visible header row; keep menu-panel descendants visible.
   > .wrap {
     visibility: hidden;
   }
 
-  // Menu panels: visible and interactive even though their ancestors aren't.
   .menu-panel,
   .user-menu,
   .hamburger-panel,
@@ -51,35 +48,19 @@ $wbo-nav-mobile-breakpoint: 719px;
   }
 }
 
-// Mobile: push the full-height user menu below the WBO bar so the avatar
-// stays visible (and tappable to close). We intentionally do NOT list
-// .sidebar-hamburger-dropdown / .hamburger-panel here — they're killed on
-// mobile below.
-// Pin the Discourse user menu (bell popup) to the bottom of the WBO nav
-// bar on every viewport. Discourse computes `top` from the header rect,
-// but the header is `visibility: hidden` under our custom nav so its
-// default lands with a small gap — this snaps it flush.
+// Pin Discourse's notification menu flush under the WBO bar on every
+// viewport (Discourse computes `top` from its hidden header).
 .menu-panel.revamped,
 .user-menu {
   top: $wbo-nav-height !important;
   max-height: calc(100vh - #{$wbo-nav-height}) !important;
 }
 
-
-// ── Mobile: hide-and-lock the Discourse sidebar hamburger drawer ──────────────
-//
-// The design consolidates Discourse's mobile sidebar into the WBO drawer.
-// Suppression has to cover every path in, not just the visible button:
-//
-//   1. The header hamburger toggle (would set focus & keyboard-activate).
-//   2. The .sidebar-hamburger-dropdown panel itself (in case any code
-//      still opens it — a hidden-but-openable panel is the failure that
-//      leaves us with two drawers again).
-//   3. Discourse's core has no swipe gesture / URL for opening it, so
-//      those routes need no coverage today. Re-check on each upgrade.
-//
-// Keep this whole block together for the next upgrade to re-verify.
-@media screen and (width <= $wbo-nav-mobile-breakpoint) {
+// ── Hide-and-lock Discourse's sidebar hamburger while the WBO drawer is in
+// charge. The WBO drawer carries Community's categories, so the second drawer
+// must be unopenable, not just hidden: the toggle AND the panel. Discourse has
+// no swipe or URL route to it today — re-check on each upgrade.
+@media screen and (width <= $wbo-nav-drawer-bp) {
   .d-header-icons .header-dropdown-toggle.hamburger-dropdown {
     display: none !important;
   }
@@ -90,46 +71,45 @@ $wbo-nav-mobile-breakpoint: 719px;
   }
 }
 
-// ── Desktop nav bar ───────────────────────────────────────────────────────────
+// ── The bar (.site-header) ───────────────────────────────────────────────────
 
 .wbo-site-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  // border-box so the 1px border-bottom is contained within
-  // $wbo-nav-height. Without this, the bar renders at 57px and
-  // overlaps the top 5px of every page (--header-offset is 56).
-  box-sizing: border-box;
+  box-sizing: border-box; // the 1px border stays inside the 56px
   height: $wbo-nav-height;
   z-index: 1002;
-  background: $wbo-nav-bg;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  // Re-enable interactivity (parent .d-header-wrap is pointer-events:none)
-  pointer-events: auto;
+  background: var(--wbo-chrome-bg);
+  border-bottom: 1px solid var(--wbo-border);
+  box-shadow: var(--wbo-chrome-shadow);
+  color: var(--wbo-text);
+  font-family: "Zalando Sans", sans-serif;
+  pointer-events: auto; // parent .d-header-wrap is pointer-events:none
 
-  // ── Inner: constrained, centred content (mirrors WP .site-header-inner) ──
-  // The bar itself stays full-bleed (background + border span the viewport);
-  // this wrapper caps the content at 1200px and centres it, matching the
-  // WordPress header so the logo/links sit in the same place on both halves.
+  // .site-header-inner: hamburger | logo | user below 960, logo | nav | user
+  // above.
   &__inner {
-    max-width: 1200px;
+    box-sizing: border-box;
     height: 100%;
+    max-width: var(--wbo-page-max-width);
     margin: 0 auto;
-    padding: 0 16px;
-    display: flex;
+    padding: 0 var(--wbo-page-gutter);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: "hamburger branding user";
     align-items: center;
-    gap: 0;
+    gap: 0 12px;
   }
 
-  // ── Logo ──────────────────────────────────────────────────────────────────
+  // ── Logo (.custom-logo) ────────────────────────────────────────────────────
 
   &__logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    flex-shrink: 0;
-    margin-right: 1.5em;
+    grid-area: branding;
+    display: block;
+    line-height: 0;
+    justify-self: center;
 
     img {
       display: block;
@@ -139,20 +119,19 @@ $wbo-nav-mobile-breakpoint: 719px;
   }
 
   &__logo-text {
-    font-family: "Oswald", sans-serif;
-    font-size: 1.4em;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--wbo-text);
   }
 
-  // ── Nav links ─────────────────────────────────────────────────────────────
+  // ── Links (.nav-primary-list a) ────────────────────────────────────────────
 
   &__links {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    flex: 1;
+    display: none;
+    grid-area: nav;
+    align-items: stretch;
+    height: 100%;
   }
 
   &__link {
@@ -160,76 +139,76 @@ $wbo-nav-mobile-breakpoint: 719px;
     align-items: center;
     height: $wbo-nav-height;
     padding: 0 0.9em;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--wbo-nav-link);
     text-decoration: none;
-    font-family: "Oswald", sans-serif;
-    // 1.1rem (17.6px) matches WordPress's nav link size -- the previous
-    // 0.9rem (14.4px) was 18% smaller and read as "a different site".
-    font-size: 1.1rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    // 1.3rem when there's room, down to 1.1rem at the 960px switch.
+    font-size: clamp(1.1rem, 3.2vw - 0.82rem, 1.3rem);
+    font-weight: 600;
+    font-stretch: 110%;
+    letter-spacing: 0.01rem;
+    white-space: nowrap;
+    box-sizing: border-box;
     border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
+    transition:
+      color 0.15s,
+      border-color 0.15s,
+      background-color 0.15s;
 
-    // Core's `a:visited { color: var(--d-link-color) }` (0,1,1) outweighs
-    // the base `.wbo-site-nav__link` colour (0,1,0), so visited nav links
-    // fell through to Discourse's blue. Re-assert the nav colour on
-    // :visited at (0,2,0). (hover / is-active follow in source order and
-    // win when they also apply.)
+    // Core's `a:visited { color: var(--d-link-color) }` outweighs the base
+    // rule; re-assert at (0,2,0).
     &:visited {
-      color: rgba(255, 255, 255, 0.75);
+      color: var(--wbo-nav-link);
     }
 
     &:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.06);
+      color: var(--wbo-text);
+      background: rgba(var(--wbo-fg-rgb), 0.06);
     }
 
     &.is-active {
-      color: #fff;
+      color: var(--wbo-text);
       border-bottom-color: var(--wbo-orange);
     }
   }
 
-  // ── Right side (user / login) ─────────────────────────────────────────────
+  // ── Right side (.user-menu) ────────────────────────────────────────────────
 
   &__right {
+    grid-area: user;
+    justify-self: end;
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    margin-left: auto;
+    gap: 10px;
   }
 
-  // Bell + custom user pill live in .wbo-site-nav__right (see .wbo-bell
-  // and .wbo-user-menu-* at the bottom of this file). The old solo
-  // avatar button is gone — kept behavior via .wbo-user-menu-trigger.
-
-  // Two-button auth pair on desktop, mirroring the WP header:
-  //   __join  = .btn.btn-primary   (orange accent, primary CTA)
-  //   __login = .btn.btn-secondary (blue accent)
-  // Both share the pill shape from WP's .btn: 20% translucent fill, 2px
-  // accent border, Rubik 600 14px, 6px 16px, mixed case. Kept in sync
-  // with .btn in the WP theme's style.css.
+  // Join Now + Log in: WordPress's .btn-primary / .btn-secondary at the
+  // compact header size.
   &__join,
   &__login {
-    display: inline-flex;
-    align-items: center;
+    --btn-accent: var(--wbo-orange);
+    --btn-ink: var(--wbo-btn-ink-primary);
+    display: inline-block;
     padding: 6px 16px;
-    color: #fff;
-    border-width: 2px;
-    border-style: solid;
-    border-radius: 100px;
-    font-family: "Rubik", sans-serif;
+    border: 2px solid var(--btn-accent);
+    border-radius: var(--wbo-radius-full);
+    background: color-mix(
+      in srgb,
+      var(--btn-accent) var(--wbo-btn-fill-rest),
+      var(--wbo-btn-fill-base)
+    );
+    box-shadow: var(--wbo-btn-lift);
+    color: var(--btn-ink);
     font-size: 14px;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    font-stretch: 110%;
+    line-height: 1.4;
+    text-shadow: var(--wbo-btn-text-shadow);
     text-decoration: none;
-    transition: opacity 0.15s;
+    transition: opacity var(--wbo-transition);
 
     &:visited,
     &:hover {
-      color: #fff;
+      color: var(--btn-ink);
     }
 
     &:hover {
@@ -237,457 +216,397 @@ $wbo-nav-mobile-breakpoint: 719px;
     }
   }
 
-  &__join {
-    background: color-mix(in srgb, var(--wbo-orange) 20%, transparent);
-    border-color: var(--wbo-orange);
-  }
-
   &__login {
-    background: color-mix(in srgb, var(--wbo-blue) 20%, transparent);
-    border-color: var(--wbo-blue);
+    --btn-accent: var(--wbo-blue);
+    --btn-ink: var(--wbo-btn-ink-secondary);
   }
 
-  // Mobile keeps only Join Now in the header (the primary CTA); Log in
-  // moves to the drawer footer so the header stays uncrowded. Both
-  // buttons still render in the drawer for anonymous users.
   @media screen and (width <= $wbo-nav-mobile-breakpoint) {
     &__login {
       display: none;
     }
   }
 
-  // ── Mobile: hide just the link row, keep logo + user/login ────────────────
-
-  @media screen and (width <= $wbo-nav-mobile-breakpoint) {
+  @media screen and (width > $wbo-nav-drawer-bp) {
     &__inner {
-      padding-left: 0;
-      padding-right: 0.75em;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: "branding nav user";
+      gap: 0;
     }
 
-    // Absolute -> centres on the fixed bar (the viewport), since __inner
-    // is not a positioned ancestor. Keeps the logo centred between the
-    // hamburger (left) and the avatar (right) on mobile.
     &__logo {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      margin: 0;
+      margin-right: 1.5em;
     }
 
     &__links {
-      display: none;
+      display: flex;
     }
   }
 }
 
-// ── Mobile: hamburger button ──────────────────────────────────────────────────
+// ── Hamburger (.nav-hamburger) ───────────────────────────────────────────────
+//
+// A pill so it reads as a button: the bold Phosphor list icon in orange and a
+// small-caps MENU label; just the X in a circle while the drawer is open.
 
 .wbo-hamburger {
-  display: none;
+  grid-area: hamburger;
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  background: rgba(var(--wbo-fg-rgb), 0.08);
+  border: 1px solid rgba(var(--wbo-fg-rgb), 0.22);
+  color: var(--wbo-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  font: inherit;
+  transition:
+    background-color var(--wbo-transition),
+    border-color var(--wbo-transition);
+  // Above the drawer (1009) so the X stays reachable while it's open.
+  position: relative;
+  z-index: 1020;
 
-  @media screen and (width <= $wbo-nav-mobile-breakpoint) {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: $wbo-nav-height;
-    height: $wbo-nav-height;
-    z-index: 1010;
-    background: $wbo-nav-bg;
-    border: none;
-    cursor: pointer;
-    padding: 0;
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--wbo-fg-rgb), 0.14);
+    border-color: rgba(var(--wbo-fg-rgb), 0.35);
+  }
 
-    span {
-      display: block;
-      width: 22px;
-      height: 2px;
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 2px;
-      transition: transform 0.25s, opacity 0.25s;
-      transform-origin: center;
-    }
+  &__icon {
+    width: 18px;
+    height: 18px;
+    color: var(--wbo-orange);
+    flex-shrink: 0;
+  }
 
-    &.is-open {
-      span:nth-child(1) {
-        transform: translateY(7px) rotate(45deg);
-      }
-      span:nth-child(2) {
-        opacity: 0;
-        transform: scaleX(0);
-      }
-      span:nth-child(3) {
-        transform: translateY(-7px) rotate(-45deg);
-      }
-    }
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--wbo-text);
+  }
+
+  &.is-open {
+    padding: 7px;
+  }
+
+  @media screen and (width > $wbo-nav-drawer-bp) {
+    display: none;
   }
 }
 
-// ── Mobile: slide-in drawer ───────────────────────────────────────────────────
+// ── Drawer (.nav-drawer) ─────────────────────────────────────────────────────
 
 .wbo-nav-drawer {
   display: none;
 
-  @media screen and (width <= $wbo-nav-mobile-breakpoint) {
+  @media screen and (width <= $wbo-nav-drawer-bp) {
     display: flex;
     flex-direction: column;
     position: fixed;
     top: 0;
     left: 0;
+    bottom: 0;
     width: 300px;
-    height: 100%;
     z-index: 1009;
-    background: $wbo-nav-bg;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
+    background: var(--wbo-chrome-bg);
+    border-right: 1px solid var(--wbo-border);
     transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding-top: $wbo-nav-height;
+    transition: transform 250ms ease;
+    padding-top: calc(#{$wbo-nav-height} + 0.5em);
     overflow-y: auto;
     overscroll-behavior: contain;
+    font-family: "Zalando Sans", sans-serif;
 
     &.is-open {
       transform: translateX(0);
     }
+  }
 
-    // Logo pinned in the top strip that padding-top reserves. The X
-    // (open-state hamburger) sits in the top-left at 1010; centering
-    // the logo across the drawer's full width lands it just right of
-    // the X, matching where the WBO nav-bar centers it when closed.
-    &__logo {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: $wbo-nav-height;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
+  // Logo pinned in the top strip, centred across the drawer.
+  &__logo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: $wbo-nav-height;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+
+    img {
+      display: block;
+      height: 36px;
+      width: auto;
       pointer-events: auto;
+    }
+  }
 
-      img {
-        display: block;
-        height: 36px;
-        width: auto;
+  &__logo-text {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--wbo-text);
+    pointer-events: auto;
+  }
+
+  nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // .nav-drawer-list a
+  &__link {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding: 0 16px;
+    color: rgba(var(--wbo-fg-rgb), 0.75);
+    text-decoration: none;
+    font-size: 1.8rem;
+    font-weight: 600;
+    font-stretch: 110%;
+    letter-spacing: 0;
+    border-left: 3px solid transparent;
+    transition:
+      color var(--wbo-transition),
+      border-color var(--wbo-transition),
+      background-color var(--wbo-transition);
+
+    &:visited {
+      color: rgba(var(--wbo-fg-rgb), 0.75);
+    }
+
+    &:hover {
+      color: var(--wbo-text);
+      background: rgba(var(--wbo-fg-rgb), 0.06);
+    }
+
+    &.is-active {
+      color: var(--wbo-text);
+      border-left-color: var(--wbo-orange);
+      background: rgba(255, 121, 0, 0.08);
+    }
+  }
+
+  // ── Community, expanded in place (Discourse-only) ──────────────────────────
+
+  &__community {
+    background: rgba(var(--wbo-fg-rgb), 0.03);
+    padding: 0.25em 0;
+  }
+
+  &__sublink {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    height: 40px;
+    padding: 0 1.5em 0 1.8em;
+    color: var(--wbo-label);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition:
+      color 0.15s,
+      background 0.15s;
+
+    &:visited {
+      color: var(--wbo-label);
+    }
+
+    &:hover,
+    &:visited:hover {
+      color: var(--wbo-text);
+      background: rgba(var(--wbo-fg-rgb), 0.05);
+    }
+
+    // Same dot Discourse puts on sidebar category rows.
+    .sidebar-section-link-suffix {
+      font-size: var(--font-down-4);
+      flex-shrink: 0;
+
+      &.icon.unread svg {
+        color: var(--d-sidebar-suffix-color);
       }
     }
+  }
 
-    &__logo-text {
-      font-family: "Oswald", sans-serif;
-      font-size: 1.4em;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.05em;
+  &__sublink-label {
+    flex: 0 0 auto;
+  }
+
+  // Discourse's own CategoriesSection, restyled. These target Discourse's
+  // classes and may need attention when sidebar markup changes upstream.
+  &__categories {
+    .sidebar-section-header-wrapper {
+      display: none; // the Community row above is the heading
     }
 
-    nav {
-      display: flex;
-      flex-direction: column;
-      padding: 0.5em 0;
+    .sidebar-section-content {
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
 
-    &__link {
-      display: flex;
-      align-items: center;
-      height: 60px;
-      padding: 0 16px;
-      color: rgba(255, 255, 255, 0.75);
-      text-decoration: none;
-      font-family: "Oswald", sans-serif;
-      font-size: 1.8rem;
-      font-weight: 500;
-      letter-spacing: 0;
-      text-transform: uppercase;
-      border-left: 3px solid transparent;
-      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
-
-      // Same as the desktop links: stop visited drawer links falling
-      // through to core's blue a:visited colour.
-      &:visited {
-        color: rgba(255, 255, 255, 0.75);
-      }
-
-      &:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.06);
-      }
-
-      &.is-active {
-        color: #fff;
-        border-left-color: var(--wbo-orange);
-        background: rgba(255, 121, 0, 0.08);
-      }
+    .sidebar-section-link-wrapper {
+      list-style: none;
     }
 
-    // ── Community expanded section ─────────────────────────────────────────
-    //
-    // Rendered inline under the active COMMUNITY row (not an accordion).
-    // The parent .wbo-nav-drawer__link is highlighted with the orange
-    // is-active bar; the block below it carries the section's contents.
-
-    &__community {
-      background: rgba(0, 0, 0, 0.18);
-      padding: 0.25em 0;
-    }
-
-    &__sublink {
+    .sidebar-section-link {
       display: flex;
       align-items: center;
       gap: 0.5em;
       height: 40px;
-      padding: 0 1.5em 0 1.8em;
-      color: rgba(255, 255, 255, 0.72);
+      padding: 0 1.5em !important;
+      color: var(--wbo-label) !important;
       text-decoration: none;
-      font-family: "Rubik", sans-serif;
-      font-size: 0.92rem;
-      font-weight: 400;
-      letter-spacing: 0;
-      text-transform: none;
-      transition: color 0.15s, background 0.15s;
-
-      // Core's `a:visited { color: var(--d-link-color) }` (0,1,1) outweighs
-      // the base rule (0,1,0), so sublinks fall through to Discourse blue.
-      // Re-assert the drawer colour on :visited at (0,2,0). Same pattern
-      // as .wbo-site-nav__link above.
-      &:visited {
-        color: rgba(255, 255, 255, 0.72);
-      }
+      font-size: 0.95rem;
+      font-weight: 500;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
 
       &:hover,
-      &:visited:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.05);
+      &:focus {
+        color: var(--wbo-text) !important;
+        background: rgba(var(--wbo-fg-rgb), 0.05) !important;
       }
 
-      // Mirror the two rules Discourse applies to the same dot inside
-      // .sidebar-section-link (font-size sizes the SVG, .unread svg color
-      // matches the native sidebar suffix colour) so the reused
-      // .sidebar-section-link-suffix.icon.unread here renders identically
-      // to the one on category rows.
-      .sidebar-section-link-suffix {
-        font-size: var(--font-down-4);
-        flex-shrink: 0;
-
-        &.icon.unread svg {
-          color: var(--d-sidebar-suffix-color);
-        }
+      &.active {
+        color: var(--wbo-text) !important;
+        background: var(--wbo-orange-dim) !important;
       }
     }
 
-    // No flex:1 — let the label take its natural width so the dot sits
-    // right next to it (matching category rows), not right-aligned.
-    &__sublink-label {
-      flex: 0 0 auto;
-    }
-
-    // Restyle the embedded Discourse CategoriesSection for our dark drawer.
-    // Rules target Discourse's own classes; they may need attention on
-    // Discourse upgrades where sidebar markup changes.
-    &__categories {
-      // Section header ("Categories") is redundant — parent COMMUNITY row
-      // is already the heading.
-      .sidebar-section-header-wrapper {
-        display: none;
-      }
-
-      .sidebar-section-content {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
-      .sidebar-section-link-wrapper {
-        list-style: none;
-      }
-
-      .sidebar-section-link {
-        display: flex;
-        align-items: center;
-        gap: 0.5em;
-        height: 40px;
-        padding: 0 1.5em !important;
-        color: rgba(255, 255, 255, 0.72) !important;
-        text-decoration: none;
-        font-family: "Rubik", sans-serif;
-        font-size: 0.92rem;
-        font-weight: 400;
-        letter-spacing: 0;
-        text-transform: none;
-        background: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-
-        &:hover,
-        &:focus {
-          color: #fff !important;
-          background: rgba(255, 255, 255, 0.05) !important;
-        }
-
-        // Discourse marks the current-route link with .active
-        &.active {
-          color: #fff !important;
-          background: rgba(255, 121, 0, 0.12) !important;
-        }
-      }
-
-      // Discourse renders the count as a badge in a suffix span
-      .sidebar-section-link-content-badge {
-        min-width: 1.5em;
-        height: 1.5em;
-        padding: 0 0.5em;
-        background: var(--wbo-orange);
-        color: #fff;
-        font-family: "Rubik", sans-serif;
-        font-size: 0.75rem;
-        font-weight: 600;
-        border-radius: 100px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      // Category prefix chip — small color square (or the list icon on the
-      // All-categories row).
-      .sidebar-section-link-prefix {
-        margin-right: 0.4em;
-        flex-shrink: 0;
-      }
-
-      // Hide "All categories" — the browseable top-levels are already
-      // listed above, and we don't want /categories browsing on Discourse
-      // (Tournaments etc. live on WordPress).
-      .sidebar-section-link-wrapper:has(
-          a[data-link-name="all-categories"]
-        ) {
-        display: none;
-      }
-    }
-
-    &__admin {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 40px;
-      padding: 0 1.5em;
-      margin-top: auto;
-      color: rgba(255, 255, 255, 0.6);
-      text-decoration: none;
-      font-family: "Oswald", sans-serif;
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 0;
-      text-transform: uppercase;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      transition: color 0.15s, background 0.15s;
-
-      &:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.05);
-      }
-
-      // If both admin and logout render, admin sits above logout — the
-      // top border already gives us the divider; drop the auto-push.
-      & + .wbo-nav-drawer__logout {
-        margin-top: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-      }
-    }
-
-    &__logout {
-      display: flex;
-      align-items: center;
-      height: 48px;
-      padding: 0 1.5em;
-      margin-top: auto;
-      color: rgba(255, 255, 255, 0.5);
-      text-decoration: none;
-      font-family: "Oswald", sans-serif;
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 0;
-      text-transform: uppercase;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      transition: color 0.15s;
-
-      &:hover {
-        color: rgba(255, 255, 255, 0.85);
-      }
-    }
-
-    // Anonymous drawer footer — Join Now + Log in in one flex row that
-    // shares the drawer width. Sits directly after the last nav item
-    // (no margin-top:auto), matching the WP drawer's .nav-drawer-auth.
-    &__auth {
-      display: flex;
-      gap: 8px;
-      padding: 12px 1.5em;
-    }
-
-    &__auth-btn {
-      flex: 1;
+    .sidebar-section-link-content-badge {
+      min-width: 1.5em;
+      height: 1.5em;
+      padding: 0 0.5em;
+      background: var(--wbo-orange);
+      color: var(--wbo-bell-badge-ink);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--wbo-radius-full);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 8px 12px;
-      color: #fff;
-      border-width: 2px;
-      border-style: solid;
-      border-radius: 100px;
-      font-family: "Rubik", sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-align: center;
-      text-decoration: none;
-      transition: opacity 0.15s;
+    }
 
-      &:visited,
-      &:hover {
-        color: #fff;
-      }
+    .sidebar-section-link-prefix {
+      margin-right: 0.4em;
+      flex-shrink: 0;
+    }
 
-      &:hover {
-        opacity: 0.85;
-      }
+    // Browseable top-levels are already listed; no /categories browsing.
+    .sidebar-section-link-wrapper:has(a[data-link-name="all-categories"]) {
+      display: none;
+    }
+  }
 
-      &--primary {
-        background: color-mix(in srgb, var(--wbo-orange) 20%, transparent);
-        border-color: var(--wbo-orange);
-      }
+  // ── Footer: Admin (Discourse-only), Log out (.nav-drawer-logout) ───────────
 
-      &--secondary {
-        background: color-mix(in srgb, var(--wbo-blue) 20%, transparent);
-        border-color: var(--wbo-blue);
-      }
+  &__admin,
+  &__logout {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 24px;
+    margin-top: auto;
+    color: var(--wbo-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(var(--wbo-fg-rgb), 0.08);
+    transition: color var(--wbo-transition);
+
+    &:visited {
+      color: var(--wbo-muted);
+    }
+
+    &:hover {
+      color: var(--wbo-text);
+    }
+  }
+
+  &__admin + &__logout {
+    margin-top: 0;
+  }
+
+  // Join Now + Log in (.nav-drawer-auth)
+  &__auth {
+    display: flex;
+    gap: 8px;
+    padding: 12px 24px;
+  }
+
+  &__auth-btn {
+    --btn-accent: var(--wbo-orange);
+    --btn-ink: var(--wbo-btn-ink-primary);
+    flex: 1;
+    display: inline-flex;
+    justify-content: center;
+    padding: 8px 12px;
+    border: 2px solid var(--btn-accent);
+    border-radius: var(--wbo-radius-full);
+    background: color-mix(
+      in srgb,
+      var(--btn-accent) var(--wbo-btn-fill-rest),
+      var(--wbo-btn-fill-base)
+    );
+    box-shadow: var(--wbo-btn-lift);
+    color: var(--btn-ink);
+    font-size: 14px;
+    font-weight: 600;
+    font-stretch: 110%;
+    text-shadow: var(--wbo-btn-text-shadow);
+    text-decoration: none;
+
+    &:visited,
+    &:hover {
+      color: var(--btn-ink);
+    }
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &--secondary {
+      --btn-accent: var(--wbo-blue);
+      --btn-ink: var(--wbo-btn-ink-secondary);
     }
   }
 }
 
-// ── Mobile: backdrop ──────────────────────────────────────────────────────────
-
 .wbo-nav-backdrop {
-  @media screen and (width <= $wbo-nav-mobile-breakpoint) {
+  @media screen and (width <= $wbo-nav-drawer-bp) {
     position: fixed;
     inset: 0;
     z-index: 1008;
-    background: rgba(0, 0, 0, 0.55);
-    animation: wboFadeIn 0.2s ease;
+    background: var(--wbo-scrim);
+    animation: wbo-fade-in 0.2s ease;
   }
 }
 
-@keyframes wboFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+@keyframes wbo-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
-// We don't display:none the Discourse header icons that we proxy-click
-// (current-user avatar) — those need to stay live so the proxy-click fires.
-
-// ── Mobile: sticky create/reply button ────────────────────────────────────────
+// ── Mobile: floating create / reply button (Discourse-only) ──────────────────
 
 .wbo-bottom-bar {
   display: none;
@@ -702,11 +621,8 @@ $wbo-nav-mobile-breakpoint: 719px;
     right: 0;
     padding: 0.75em 1em;
     z-index: 1001;
-    background: transparent;
-    border: none;
-    pointer-events: none; // let taps fall through except on the button
+    pointer-events: none; // taps fall through except on the button
 
-    // Floating circular create / reply button
     &__create {
       display: flex;
       align-items: center;
@@ -719,12 +635,13 @@ $wbo-nav-mobile-breakpoint: 719px;
       cursor: pointer;
       flex-shrink: 0;
       pointer-events: auto;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 14px var(--wbo-shadow-color);
+      transition:
+        background 0.15s,
+        box-shadow 0.15s;
 
       &:hover {
-        background: darken(#ff7900, 8%);
-        box-shadow: 0 5px 18px rgba(255, 121, 0, 0.65);
+        background: var(--wbo-ui-orange);
       }
 
       .d-icon {
@@ -735,8 +652,6 @@ $wbo-nav-mobile-breakpoint: 719px;
   }
 }
 
-// ── Mobile: add bottom padding so content isn't obscured by the button ────────
-
 @media screen and (width <= $wbo-nav-mobile-breakpoint) {
   #main-outlet-wrapper,
   #main-outlet {
@@ -744,42 +659,37 @@ $wbo-nav-mobile-breakpoint: 719px;
   }
 }
 
-// ── Bell (Discourse-native user menu) ────────────────────────────────────────
-//
-// Proxy-click button that opens Discourse's own user-menu panel
-// (notifications, replies, likes, messages, bookmarks, review-queue).
-// Always visible for logged-in users; sits to the LEFT of the custom
-// pill so the pill remains the rightmost element in the nav bar.
+// ── Bell (.bell-trigger) — opens Discourse's own notification menu ──────────
 
 .wbo-bell {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   background: none;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 50%;
+  color: var(--wbo-label);
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.75);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  // Anchor for the count pill overlaid on the top-right corner.
-  position: relative;
+  transition:
+    background-color var(--wbo-transition),
+    color var(--wbo-transition);
 
   &:hover,
   &:focus-visible {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: rgba(var(--wbo-fg-rgb), 0.08);
+    color: var(--wbo-text);
     outline: none;
   }
 
+  // .bell-badge
   &__badge {
     position: absolute;
-    // Hang off the top-right corner so the bell icon stays readable.
-    top: -4px;
-    right: -6px;
+    top: -2px;
+    right: -4px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -787,31 +697,20 @@ $wbo-nav-mobile-breakpoint: 719px;
     height: 14px;
     padding: 0 4px;
     background: var(--wbo-orange);
-    // Dark navy on orange gives ~7:1 contrast — far more readable than
-    // white on orange (~2.5:1).
-    color: $wbo-nav-bg;
-    font-family: "Rubik", sans-serif;
+    color: var(--wbo-bell-badge-ink);
     font-size: 10px;
     font-weight: 700;
     line-height: 1;
-    letter-spacing: 0;
     border-radius: 100px;
-    // Hairline stroke in the nav-bar colour so the pill reads distinct
-    // from the icon behind it without stealing more space.
-    border: 1.5px solid $wbo-nav-bg;
+    border: 1.5px solid var(--wbo-chrome-bg);
     box-sizing: content-box;
-  }
-
-  .d-icon {
-    font-size: 0.95rem;
   }
 }
 
-// ── Custom user pill + dropdown (mirrors the WP .user-menu-*) ────────────────
+// ── User pill (.user-menu-link / .user-menu-trigger) ─────────────────────────
 //
-// Structure mirrors the WordPress markup so both sides of the site share
-// the same visual language. Positions relative anchors the dropdown; the
-// pill collapses to just avatar+caret below 480px (matches WP breakpoint).
+// The account panel itself is scss/wbo-user-menu.scss, generated from
+// WordPress's assets/user-menu.css.
 
 .wbo-user-menu-wrap {
   position: relative;
@@ -823,79 +722,57 @@ $wbo-nav-mobile-breakpoint: 719px;
   gap: 8px;
   border: 0;
   border-radius: 100px;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  font-family: "Rubik", sans-serif;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--wbo-label);
+  font: inherit;
   font-size: 14px;
-  transition: background 0.15s, border-color 0.15s;
-  position: relative; // anchor for .wbo-user-menu-dot
+  transition:
+    background-color var(--wbo-transition),
+    border-color var(--wbo-transition);
 
   .avatar {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 32px;
     height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--wbo-surface);
   }
 
-  img {
+  .avatar img {
     width: 32px;
     height: 32px;
     border-radius: 50%;
     display: block;
   }
-}
 
-// Small orange dot on the pill when unread notifications / messages /
-// review items are waiting — top-right of the avatar circle. Border
-// colour matches the nav-bar background so the dot sits cleanly.
-.wbo-user-menu-dot {
-  position: absolute;
-  top: 0;
-  left: 24px; // avatar is 32px wide inside the pill → dot sits top-right
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--wbo-orange);
-  border: 2px solid $wbo-nav-bg;
-  box-sizing: content-box;
-  pointer-events: none;
-}
-
-.wbo-user-menu-trigger {
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
+  &:hover {
+    background: rgba(var(--wbo-fg-rgb), 0.06);
+    color: var(--wbo-text);
+  }
 
   &.is-open,
   &[aria-expanded="true"] {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: rgba(var(--wbo-fg-rgb), 0.08);
+    border-color: rgba(var(--wbo-fg-rgb), 0.2);
+    color: var(--wbo-text);
   }
-}
 
-// Pill outline + caret appear at the same >=720px breakpoint WP uses so
-// the two headers agree on the boundary between "avatar-only" and "pill".
-@media screen and (min-width: 720px) {
-  .wbo-user-menu-link {
+  @media screen and (width > $wbo-nav-mobile-breakpoint) {
     padding: 4px 12px 4px 4px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .wbo-user-menu-trigger {
-    padding: 4px 12px 4px 4px;
+    border: 1px solid var(--wbo-border);
   }
 }
 
 .wbo-user-menu-name {
-  font-weight: 500;
   display: none;
-}
+  font-weight: 500;
 
-// Show the username on wider viewports; the avatar alone identifies the
-// user on narrow screens. Same 480px cutover as WP.
-@media screen and (min-width: 480px) {
-  .wbo-user-menu-name {
+  @media screen and (width >= 480px) {
     display: inline;
   }
 }
@@ -903,114 +780,14 @@ $wbo-nav-mobile-breakpoint: 719px;
 .wbo-user-menu-caret {
   display: none;
   align-items: center;
-  color: rgba(255, 255, 255, 0.6);
-  transition: transform 0.15s;
+  color: var(--wbo-muted);
 
-  .wbo-user-menu-trigger.is-open &,
-  .wbo-user-menu-trigger[aria-expanded="true"] & {
-    transform: rotate(180deg);
-    color: #fff;
-  }
-}
-
-@media screen and (min-width: 720px) {
-  .wbo-user-menu-caret {
+  @media screen and (width > $wbo-nav-mobile-breakpoint) {
     display: inline-flex;
   }
 }
 
-// ── Dropdown panel ───────────────────────────────────────────────────────────
-
-.wbo-user-menu-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 1100;
-  min-width: 240px;
-  padding: 6px;
-  // #0a1a3a matches WP's dark --elevated so the dropdown surface reads
-  // the same colour across the two halves of the site.
-  background: #0a1a3a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-}
-
-// On mobile, anchor the panel to the VIEWPORT's right edge (not the
-// pill's) so the bell doesn't push it off-center, and cap its width so
-// it isn't drawer-sized on tablet-width screens.
-@media screen and (width <= $wbo-nav-mobile-breakpoint) {
-  .wbo-user-menu-dropdown {
-    position: fixed;
-    top: calc(#{$wbo-nav-height} + 8px);
-    // 12px matches the WBO nav's mobile right padding (0.75em).
-    right: 12px;
-    left: auto;
-    min-width: 220px;
-    max-width: min(280px, calc(100vw - 24px));
-  }
-}
-
-.wbo-user-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  width: 100%;
-  // Default content-box + width:100% + padding pushed items 20px wider
-  // than the dropdown's content area, so hover pills spilled past the
-  // rounded corner. border-box makes the padding live inside the 100%
-  // so items fit their parent's inner width exactly.
-  box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  font-family: "Rubik", sans-serif;
-  font-size: 14px;
-  background: none;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-  // Normalize <button>'s default center alignment so the theme-toggle
-  // label reads the same as the <a> rows.
-  text-align: left;
-  transition: background 0.15s, color 0.15s;
-
-  &:hover,
-  &:focus-visible {
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
-    outline: none;
-  }
-
-  &:visited {
-    color: rgba(255, 255, 255, 0.85);
-  }
-}
-
-// Icon column — 20px wide, orange, matching WP's .user-menu-item-icon.
-// The inline SVGs inherit currentColor so this one rule paints them all.
-.wbo-user-menu-item-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  color: var(--wbo-orange);
-  flex-shrink: 0;
-
-  svg {
-    display: block;
-  }
-}
-
-.wbo-user-menu-item-label {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-// Count badge. Inbox-activity variant (Messages / Notifications) uses the
-// orange accent so it reads as "there's something waiting for you here".
+// The count pill on the panel's My Events row (.user-menu-item-count--all).
 .wbo-user-menu-item-count {
   display: inline-flex;
   align-items: center;
@@ -1018,54 +795,60 @@ $wbo-nav-mobile-breakpoint: 719px;
   min-width: 20px;
   height: 20px;
   padding: 0 7px;
-  border-radius: 100px;
-  font-family: "Rubik", sans-serif;
+  border-radius: var(--wbo-radius-full);
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
-  color: var(--wbo-orange);
+  color: var(--wbo-orange-text);
   background: var(--wbo-orange-dim);
   border: 1px solid rgba(255, 121, 0, 0.4);
 }
 
-.wbo-user-menu-item-count--activity {
-  color: var(--wbo-orange);
-  background: var(--wbo-orange-dim);
-  border-color: var(--wbo-orange);
-}
+// The account panel sits inside the bar, so it resets what it would inherit;
+// the parts WordPress styles in style.css rather than user-menu.css are
+// restated here.
+.wbo-um-panel.um-card {
+  z-index: 1100;
+  color: var(--wbo-text);
+  border: 1px solid var(--wbo-border);
+  box-sizing: border-box;
+  line-height: 1.5;
+  text-align: left;
 
-.wbo-user-menu-divider {
-  height: 1px;
-  margin: 6px 4px;
-  background: rgba(255, 255, 255, 0.1);
-}
+  .um-avatar img {
+    border-radius: 0; // .um-avatar crops the circle
+  }
 
-.wbo-user-menu-item-secondary {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 13px;
-
-  // Muted icon on the log-out row, matching WP's .user-menu-item-secondary.
-  .wbo-user-menu-item-icon {
-    color: rgba(255, 255, 255, 0.6);
+  @media screen and (width > $wbo-nav-mobile-breakpoint) {
+    .um-close {
+      display: none;
+    }
   }
 }
 
-// Theme toggle: both labels ship, CSS shows the one that names the
-// action a click will take. Mirrors WP's setup so the flip is instant
-// without waiting for JS to relabel.
-.wbo-user-menu-theme {
+// Phones: the big Close button at the foot of the sheet (.t-oact-cancel).
+.wbo-um-close {
+  display: block;
   width: 100%;
-
-  .when-light {
-    display: none;
-  }
+  padding: 12px;
+  border-radius: var(--wbo-radius);
+  border: 1px solid var(--wbo-border);
+  background: rgba(var(--wbo-fg-rgb), 0.06);
+  color: var(--wbo-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-:root[data-theme="light"] .wbo-user-menu-theme {
-  .when-dark {
-    display: none;
+// Shared with WordPress's bell panel (style.css); user-menu.css uses it.
+@keyframes wbo-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
   }
-  .when-light {
-    display: inline;
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -16,23 +16,38 @@
     "WBO": {
       "primary": "ffffff",
       "secondary": "051129",
-      "tertiary": "13A0EC",
-      "quaternary": "13A0EC",
-      "header_background": "000106",
-      "header_primary": "0d2569",
+      "tertiary": "13a0ec",
+      "quaternary": "ff7900",
+      "header_background": "00143c",
+      "header_primary": "ffffff",
       "highlight": "ff7900",
       "selected": "0d2569",
       "hover": "002382",
-      "danger": "FF697A",
-      "success": "70B880",
-      "love": "9D256B",
-      "primary-medium": "999999",
-      "primary-low-mid": "888888"
+      "danger": "f07070",
+      "success": "7fe2a5",
+      "love": "d400ff"
+    },
+    "WBO Light": {
+      "primary": "151a2c",
+      "secondary": "f5f6f9",
+      "tertiary": "0a6ba6",
+      "quaternary": "a94700",
+      "header_background": "f5f6f9",
+      "header_primary": "151a2c",
+      "highlight": "ff7900",
+      "selected": "e3e4e9",
+      "hover": "dde3ef",
+      "danger": "c0392b",
+      "success": "126b41",
+      "love": "862bd8"
     }
   },
   "components": [
     "https://github.com/discourse/discourse-full-width-component.git",
     "https://github.com/discourse/discourse-header-search.git"
   ],
-  "screenshots": ["screenshots/light.png", "screenshots/dark.png"]
+  "screenshots": [
+    "screenshots/light.png",
+    "screenshots/dark.png"
+  ]
 }
