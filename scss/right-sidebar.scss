@@ -18,6 +18,13 @@
     position: sticky;
     top: calc(var(--header-offset) + 0.75em);
     align-self: start;
+
+    // Taller than the window? Scroll the sidebar on its own (like Reddit's)
+    // instead of cutting off whatever sits below the fold.
+    max-height: calc(100vh - var(--header-offset) - 1.5em);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
   }
 
   &_category-about,

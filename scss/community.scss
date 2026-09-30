@@ -39,17 +39,24 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 }
 
 // ── About panel ─────────────────────────────────────────────────────────────
+// One card, sections split by hairlines -- like Reddit's community sidebar.
 .wbo-about {
   display: flex;
   flex-direction: column;
-  gap: 1em;
+
+  @include custom-card {
+    padding: 0;
+  }
 
   &__card {
     display: flex;
     flex-direction: column;
     gap: 0.75em;
+    padding: 16px;
 
-    @include custom-card;
+    + .wbo-about__card {
+      border-top: 1px solid var(--redditish-border-color);
+    }
   }
 
   &__heading,
