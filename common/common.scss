@@ -72,6 +72,7 @@ body {
 @import "category-banner";
 @import "category-boxes";
 @import "chat";
+@import "community";
 @import "composer";
 @import "groups";
 @import "header";
@@ -233,6 +234,19 @@ body {
 .sidebar-section-wrapper
   .sidebar-section-header.sidebar-section-header-collapsable {
   padding-left: 0;
+}
+
+// Section headers ("Categories", "Tags") are .btn elements, so they picked up
+// the tonal button fill and light-mode lift and read as floating chips. They
+// are headings, not buttons: flat.
+.sidebar-wrapper .sidebar-section-wrapper .sidebar-section-header,
+.discourse-no-touch
+  .sidebar-wrapper
+  .sidebar-section-wrapper
+  .sidebar-section-header:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .sidebar-section-link-wrapper button {

@@ -116,10 +116,12 @@ div.education {
   display: flex;
 
   .topic-list-item {
+    // Read topics dim slightly, but stay legible. --primary-medium read
+    // as disabled (a pale periwinkle on light, mid-grey on dark).
     &.visited {
       .link-top-line a.title,
       .topic-excerpt {
-        color: var(--primary-medium);
+        color: var(--wbo-label);
       }
     }
 
@@ -194,7 +196,7 @@ div.education {
   }
 
   &_meta {
-    color: var(--primary-medium);
+    color: var(--wbo-muted);
     margin-bottom: 0.5em;
     padding-left: 0.05em;
     min-width: 0;
@@ -236,12 +238,17 @@ div.education {
       height: auto;
       max-height: 500px;
       object-fit: contain;
+
+      // On phones a full-height image let only ~1.5 topics fit on screen.
+      @media screen and (width <= 719px) {
+        max-height: 260px;
+      }
     }
   }
 
   &_bottom-bar {
     font-size: var(--font-down-1);
-    color: var(--primary-medium);
+    color: var(--wbo-muted);
     padding: 0.25em 0;
 
     span {

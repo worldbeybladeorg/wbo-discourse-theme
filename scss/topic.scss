@@ -393,3 +393,15 @@ html:not(.footer-nav-visible) #topic-progress-wrapper {
 .voting-wrapper.show-pointer .vote-count-wrapper:not(.no-votes):hover {
   background: transparent;
 }
+
+// Private messages: core draws a bordered box around each post body, inside
+// the topic card that already frames it -- a card within a card.
+.archetype-private_message .topic-post .post__regular.post__contents {
+  border: none;
+}
+
+// Core renders a <br> after the footer buttons; with the buttons hidden it
+// is just a blank line pushing "Suggested topics" further down.
+#topic-footer-buttons + br {
+  display: none;
+}
