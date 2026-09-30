@@ -14,9 +14,8 @@
   @include custom-topic-width;
 
   h1 {
-    // font-size + font-weight now come from the site-wide heading rule
-    // in common.scss so the topic title matches WordPress (40px/700
-    // instead of the previous 28px/400).
+    // Size, weight (550) and width (110%) come from common.scss, so the
+    // topic title matches WordPress's event titles.
     a {
       color: var(--primary);
     }

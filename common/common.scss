@@ -328,10 +328,16 @@ h4 { font-size: 18px; }
   }
 }
 
-h1,
+h1 {
+  font-weight: 700;
+}
+
+// Topic titles — the page heading as well as in lists — are 550 at 110%
+// width, like WordPress's event titles.
 #topic-title h1,
 .fancy-title {
-  font-weight: 700;
+  font-weight: 550;
+  font-stretch: 110%;
 }
 
 // ── WBO Accent Colour (orange) ────────────────────────────────────────────────
