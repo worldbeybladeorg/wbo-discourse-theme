@@ -13,29 +13,30 @@
 // and that stack is owned by wbo-site-nav.scss -- not worth disturbing for
 // a 56px bar.
 //
-// pointer-events: none is load-bearing. Discourse's composer is docked, not
-// modal: you are meant to keep scrolling, quoting and clicking the topic
-// underneath while it's open. This layer is decoration only and must never
-// swallow a click.
+// The backdrop catches clicks and collapses the composer to the draft strip
+// (see wbo-composer-backdrop.gjs) -- so no pointer-events: none here. That
+// does cost you click-to-quote on the topic behind an open composer, which
+// core allows; the panel reads as modal, so it should behave as one.
 //
-// Below sm (40rem) core takes the composer fullscreen at z 1100, so the
-// scrim would be covered anyway -- don't paint it there.
-@media (width >= 40rem) {
-  html.composer-open:has(#reply-control.open:not(.fullscreen)) body::before {
-    content: "";
-    // display is load-bearing, not boilerplate. Core clearfixes <body>, so
-    // body::before already computes to display:table. position:fixed does
-    // NOT blockify a table box, and a table shrink-wraps -- inset:0 then
-    // resolves to a 0x0 box and the scrim renders nothing at all. Verified
-    // in the browser: without this line the rule computes exactly as
-    // written and still paints zero pixels.
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 399;
-    pointer-events: none;
-    background: var(--wbo-composer-scrim);
-    animation: wboFadeIn 0.2s ease; // defined in wbo-site-nav.scss
+// The element only exists while composeState is OPEN, so there is no state
+// to express in CSS and nothing to hide when the composer is shut.
+//
+// Rendered by the above-site-header outlet, inside #main (position: relative,
+// z-index: auto -- not a stacking context), so 399 resolves against the root
+// context as intended. Verify that ancestry still holds if the outlet moves.
+.wbo-composer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 399;
+  background: var(--wbo-composer-scrim);
+  animation: wboFadeIn 0.2s ease; // defined in wbo-site-nav.scss
+
+  // The component guards on site.mobileView, which is device detection, not
+  // width -- a narrow desktop window still renders it. Below sm (40rem) core
+  // takes the composer fullscreen at z 1100 and covers the backdrop anyway,
+  // so drop it rather than leave an invisible click target in the layout.
+  @media (width < 40rem) {
+    display: none;
   }
 }
 
