@@ -35,7 +35,7 @@ discord_server_id:
   description: "Discord server ID, for the live \"online now\" count. Needs Server Widget enabled in the Discord server settings. Leave blank to hide the count."
 
 discord_heading:
-  default: "Chat live with other bladers"
+  default: "Discord"
   description: "About panel (right sidebar and mobile About tab): heading of the Discord box."
 
 rules:

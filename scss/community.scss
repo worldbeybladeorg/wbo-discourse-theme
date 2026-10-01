@@ -123,15 +123,21 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     font-size: var(--font-down-1);
   }
 
-  &__discord .wbo-about__muted {
-    margin-top: 0.25em;
+  // Heading on the left, "X online" on the right of the same row.
+  &__discord-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75em;
   }
 
   &__online {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     gap: 0.5em;
     font-weight: 600;
+    white-space: nowrap;
   }
 
   &__online-dot {

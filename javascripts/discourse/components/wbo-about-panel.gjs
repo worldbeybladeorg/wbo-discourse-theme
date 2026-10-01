@@ -145,17 +145,17 @@ export default class WboAboutPanel extends Component {
 
       {{#if this.discordUrl}}
         <section class="wbo-about__card wbo-about__discord">
-          <div>
+          <div class="wbo-about__discord-head">
             <h3
               class="wbo-about__discord-title"
             >{{settings.discord_heading}}</h3>
+            {{#if this.onlineLabel}}
+              <p class="wbo-about__online">
+                <span class="wbo-about__online-dot" aria-hidden="true"></span>
+                {{this.onlineLabel}}
+              </p>
+            {{/if}}
           </div>
-          {{#if this.onlineLabel}}
-            <p class="wbo-about__online">
-              <span class="wbo-about__online-dot" aria-hidden="true"></span>
-              {{this.onlineLabel}}
-            </p>
-          {{/if}}
           <a
             href={{this.discordUrl}}
             class="btn wbo-btn-discord wbo-about__button"
