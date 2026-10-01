@@ -468,15 +468,20 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   display: none;
 }
 
+// Above sidebar width nothing in the outlet is visible (the header and the
+// bar are both hidden), so drop the outlet itself -- otherwise its empty box
+// plus .list-controls' gap pushed the tabs ~16px down.
 @media screen and (width > $wbo-rail-hidden-bp) {
-  .custom-post-bar .custom-post-bar-contents {
+  .list-controls .custom-post-bar {
     display: none;
   }
 }
 
 // Top of the right sidebar on the feeds: the same Create topic button as the
-// phone header (.btn-primary), full width.
-#main-outlet .wbo-rail-create.btn {
+// phone header (.btn-primary), full width. The sidebar sits in
+// #main-outlet-wrapper (not #main-outlet), and the ID is needed to beat
+// core's ID-carrying .btn-primary height rule.
+#main-outlet-wrapper .custom-right-sidebar .wbo-rail-create.btn {
   display: flex;
   justify-content: center;
   align-items: center;
