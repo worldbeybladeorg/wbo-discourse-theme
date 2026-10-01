@@ -532,19 +532,20 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
+// Core gives .navigation-container a 12px bottom margin. On desktop it
+// stacked on the tab strip's own 16px; on phones (where the strip is hidden
+// under the community header) it left the feed 12px further down than the
+// About tab's panel. Drop it at every width.
+#main-outlet .list-controls .navigation-container {
+  margin-bottom: 0;
+}
+
 // Desktop feed filters (Discourse's #navigation-bar: Latest, Unread, Hot…)
 // as a WordPress .browse-view-tabs strip, outside any card: muted 600 text
 // at 16px / 110% width on the page, a 1px hairline under the row, and a 2px
 // orange underline on the active filter laid over it (top: 1px). Phones keep
 // their own header, so this stops at the phone breakpoint.
 @media screen and (width > $wbo-phone-bp) {
-  // Core gives .navigation-container a 12px bottom margin on top of the
-  // strip's own 16px; drop it so the spacing below the tabs is the 16px gap
-  // the sidebar uses.
-  #main-outlet .list-controls .navigation-container {
-    margin-bottom: 0;
-  }
-
   // 44px tall, the height of the sidebar's Create topic button, so the
   // first topic card starts exactly level with the sidebar's About card
   // (both 16px below a 44px row).
