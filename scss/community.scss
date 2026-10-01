@@ -549,7 +549,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   justify-content: center;
   align-items: center;
   gap: 0.45em;
-  width: 100%;
+  width: var(--wbo-rail-width);
   height: 44px;
   padding-block: 0;
   white-space: nowrap;

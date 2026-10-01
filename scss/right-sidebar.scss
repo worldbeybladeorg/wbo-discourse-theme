@@ -35,10 +35,20 @@
     scrollbar-color: rgba(var(--wbo-fg-rgb), 0.25) transparent;
   }
 
-  // In a scrolling flex column the children would otherwise shrink to fit
-  // (opening a rule squashed the Create topic button).
+  // The scrollbar gets its own 16px lane to the right of the cards (inside
+  // the grid's 24px column gap), so when it appears it doesn't take width
+  // from them: the box is 16px wider than its 312px grid column and the
+  // children stay exactly column-width.
+  --wbo-rail-width: 312px; // the sidebar2 column in common.scss
+  width: calc(var(--wbo-rail-width) + 16px);
+  align-items: flex-start;
+
+  // flex-shrink: in a scrolling flex column the children would otherwise
+  // shrink to fit (opening a rule squashed the Create topic button).
   > * {
     flex-shrink: 0;
+    box-sizing: border-box;
+    width: var(--wbo-rail-width);
   }
 
   &_category-about,
