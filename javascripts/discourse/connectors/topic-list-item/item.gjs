@@ -198,6 +198,14 @@ export default class Item extends Component {
               </div>
             </div>
           {{else}}
+            {{! Blurred copy behind the image: fills the sides when a narrow
+                (portrait) image is letterboxed in the card. }}
+            <img
+              class="custom-topic-layout_image-bg"
+              src={{get @outletArgs "topic.thumbnails.0.url"}}
+              alt=""
+              aria-hidden="true"
+            />
             <img
               height={{get @outletArgs "topic.thumbnails.0.height"}}
               width={{get @outletArgs "topic.thumbnails.0.width"}}

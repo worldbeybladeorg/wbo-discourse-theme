@@ -230,10 +230,15 @@ div.education {
   }
 
   &_image {
+    position: relative;
     width: 100%;
     margin: 0.25em 0 0.75em;
+    overflow: hidden;
+    border-radius: var(--wbo-radius);
 
     img {
+      position: relative;
+      display: block;
       width: 100%;
       height: auto;
       max-height: 500px;
@@ -243,6 +248,22 @@ div.education {
       @media screen and (width <= 719px) {
         max-height: 260px;
       }
+    }
+
+    // A tall, narrow image is height-capped and centred, leaving empty bands
+    // either side. Fill them with a blurred, faded copy of the same image
+    // (like Reddit). Faded with opacity so it takes on the card colour: dim
+    // on dark, pale on light. Wide images cover it completely.
+    img.custom-topic-layout_image-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      object-fit: cover;
+      filter: blur(24px);
+      opacity: 0.5;
+      transform: scale(1.2); // hide the blur's soft edges
     }
   }
 
