@@ -269,13 +269,11 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     margin-top: 1em;
   }
 
+  // Create topic + Discord wherever the right sidebar (and its Create topic
+  // button) is hidden.
   &__actions {
-    display: none;
-
-    @media screen and (width <= $wbo-phone-bp) {
-      display: flex;
-      gap: 0.5em;
-    }
+    display: flex;
+    gap: 0.5em;
   }
 
   // The tab strip sits on the header's bottom border, as WordPress's
@@ -460,40 +458,38 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
-// Desktop: no card around the "Create topic" bar -- just the avatar and the
-// field on the page, with the feed tabs as their own strip below (see
-// #navigation-bar further down). The field takes the card colour so it still
-// reads as an input on the page background.
-@media screen and (width > $wbo-phone-bp) {
-  .custom-post-bar .custom-post-bar-contents,
-  .discourse-no-touch .custom-post-bar .custom-post-bar-contents:hover {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: none;
+// Where "Create topic" lives: the community header's button on the
+// top-level feeds below 1160px, and the button at the top of the right
+// sidebar above it (sidebar-welcome.gjs). So the old fake-input bar is hidden
+// on those feeds at every width, and on all pages once the sidebar shows
+// (category pages have the create button in their About card). It remains
+// only on category/tag pages between phone and sidebar widths.
+.custom-post-bar:has(.wbo-community-header) .custom-post-bar-contents {
+  display: none;
+}
+
+@media screen and (width > $wbo-rail-hidden-bp) {
+  .custom-post-bar .custom-post-bar-contents {
+    display: none;
   }
+}
 
-  // Out of its card the field was easy to miss next to the phone's orange
-  // Create topic button, so it takes that button's accent: a 2px orange
-  // border (the .btn-primary edge), with the button's wash on hover.
-  .custom-post-bar .custom-post-bar-contents input[type="text"] {
-    border: 2px solid var(--wbo-orange);
-    background: var(--secondary);
-    cursor: pointer;
+// Top of the right sidebar on the feeds: the same Create topic button as the
+// phone header (.btn-primary), full width.
+#main-outlet .wbo-rail-create.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45em;
+  width: 100%;
+  height: 44px;
+  padding-block: 0;
+  white-space: nowrap;
 
-    &::placeholder {
-      color: var(--wbo-label);
-    }
-
-    &:hover,
-    &:focus {
-      border-color: var(--wbo-orange);
-      background: color-mix(
-        in srgb,
-        var(--wbo-orange) var(--wbo-btn-fill-rest),
-        var(--secondary)
-      );
-    }
+  .wbo-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
   }
 }
 
