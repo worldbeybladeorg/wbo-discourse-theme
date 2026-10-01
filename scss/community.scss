@@ -20,7 +20,10 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 // Header buttons use the site's real .btn sizing and type (common.scss:
 // 10px 20px padding, ~46px, 600 weight): .btn-primary for Create topic and
 // the Discord accent (above) on the same tonal engine. Only alignment here.
-.wbo-community-header .wbo-community-header__actions .btn {
+// #main-outlet in the selector: a core rule for .btn-default/.btn-primary
+// carries an ID inside its :not(), so it out-specifies any class-only rule
+// and was forcing Create topic to 36px while the Discord link was 47px.
+#main-outlet .wbo-community-header .wbo-community-header__actions .btn {
   display: inline-flex;
 
   // Share the row equally so the pair never wraps onto two lines on a
@@ -30,6 +33,8 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   align-items: center;
   gap: 0.45em;
   min-width: 0;
+  height: 44px;
+  padding-block: 0;
   padding-inline: 12px;
   line-height: 1.5;
   white-space: nowrap;
@@ -49,7 +54,11 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
-.wbo-community-header .wbo-community-header__actions .wbo-btn-discord .d-icon {
+#main-outlet
+  .wbo-community-header
+  .wbo-community-header__actions
+  .wbo-btn-discord
+  .d-icon {
   color: #5865f2;
 }
 
@@ -331,6 +340,19 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
   &__about {
     margin-bottom: 1em;
+  }
+}
+
+// Phones: the header is a full-bleed band directly under the site nav, like
+// Reddit's community header, not a floating card. The side margins cancel
+// .wrap's padding (core's --d-wrap-padding-x); the -16px top margin brings
+// it up flush under the nav bar.
+@media screen and (width <= $wbo-phone-bp) {
+  #main-outlet .wbo-community-header {
+    margin: -16px calc(-1 * var(--d-wrap-padding-x)) 1em;
+    padding: 12px 16px 8px;
+    border-width: 0 0 1px;
+    border-radius: 0;
   }
 }
 
