@@ -187,7 +187,14 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
       cursor: pointer;
       list-style: none;
 
+      // Hide both the browser's marker and core's own ▶/▼ (summary::before);
+      // the caret on the right is the toggle.
       &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        content: none;
         display: none;
       }
     }
@@ -226,6 +233,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     display: flex;
     align-items: flex-start;
     gap: 0.75em;
+    box-sizing: border-box;
     min-height: 44px;
     padding: 0.6em 0;
     color: var(--wbo-text);
