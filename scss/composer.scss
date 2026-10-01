@@ -18,13 +18,14 @@
 // does cost you click-to-quote on the topic behind an open composer, which
 // core allows; the panel reads as modal, so it should behave as one.
 //
-// The element only exists while composeState is OPEN, so there is no state
-// to express in CSS and nothing to hide when the composer is shut.
+// The element is always in the DOM on desktop; it shows only while core's
+// html.composer-open class is set (composer OPEN, not the draft strip).
 //
 // Rendered by the above-site-header outlet, inside #main (position: relative,
 // z-index: auto -- not a stacking context), so 399 resolves against the root
 // context as intended. Verify that ancestry still holds if the outlet moves.
 .wbo-composer-backdrop {
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 399;
@@ -35,6 +36,14 @@
   // width -- a narrow desktop window still renders it. Below sm (40rem) core
   // takes the composer fullscreen at z 1100 and covers the backdrop anyway,
   // so drop it rather than leave an invisible click target in the layout.
+  @media (width < 40rem) {
+    display: none;
+  }
+}
+
+html.composer-open .wbo-composer-backdrop {
+  display: block;
+
   @media (width < 40rem) {
     display: none;
   }

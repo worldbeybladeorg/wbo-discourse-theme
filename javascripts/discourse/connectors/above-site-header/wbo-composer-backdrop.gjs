@@ -2,7 +2,6 @@ import Component from "@glimmer/component";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { on } from "@ember/modifier";
-import Composer from "discourse/models/composer";
 
 // ── Composer backdrop ─────────────────────────────────────────────────────────
 //
@@ -23,25 +22,20 @@ import Composer from "discourse/models/composer";
 // This matches .wbo-nav-backdrop in wbo-site-nav.gjs, where clicking the
 // backdrop dismisses the drawer.
 //
-// Rendering unconditionally and letting CSS decide visibility would be
-// simpler, but the element would then swallow clicks across the whole viewport
-// while the composer is shut. The `isOpen` guard keeps it out of the DOM
-// except when the composer is actually open.
+// Visibility is CSS's job: core puts `composer-open` on <html> only while
+// the composer is OPEN (not in the collapsed draft strip), and the backdrop is
+// display:none otherwise, so it never swallows clicks while shut. An earlier
+// version guarded on composer.model.composeState in the template, but that
+// read isn't reactive here and the backdrop never appeared.
 export default class WboComposerBackdrop extends Component {
   @service composer;
   @service site;
 
+  // Mobile takes the composer fullscreen at z 1100, so there is nothing
+  // left to dim -- and a tap-to-collapse target there would just be a way
+  // to lose your place mid-post.
   get isVisible() {
-    // Mobile takes the composer fullscreen at z 1100, so there is nothing
-    // left to dim -- and a tap-to-collapse target there would just be a way
-    // to lose your place mid-post.
-    if (this.site.mobileView) {
-      return false;
-    }
-
-    // FULLSCREEN covers the viewport on its own; DRAFT is the collapsed
-    // strip, which should stay non-modal.
-    return this.composer.model?.composeState === Composer.OPEN;
+    return !this.site.mobileView;
   }
 
   @action
