@@ -17,10 +17,45 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   color: var(--btn-ink);
 }
 
+// Header buttons use the site's real .btn sizing and type (common.scss:
+// 10px 20px padding, ~46px, 600 weight): .btn-primary for Create topic and
+// the Discord accent (above) on the same tonal engine. Only alignment here.
+.wbo-community-header .wbo-community-header__actions .btn {
+  display: inline-flex;
+
+  // Share the row equally so the pair never wraps onto two lines on a
+  // 360-390px phone, and both pills line up with the card edges.
+  flex: 1 1 0;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45em;
+  min-width: 0;
+  padding-inline: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+
+  // A link styled as .btn doesn't get core's pill radius.
+  border-radius: var(--d-button-border-radius);
+  text-decoration: none;
+
+  // Same size for the Phosphor and Discourse icons, and no core margin on
+  // top of the flex gap.
+  .wbo-icon,
+  .d-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+}
+
+.wbo-community-header .wbo-community-header__actions .wbo-btn-discord .d-icon {
+  color: #5865f2;
+}
+
+// Links styled as .btn don't get core's pill radius; match the buttons.
 // Longhands at three-class specificity: core sets padding-block/-inline and
-// height on .btn at higher specificity than a plain .btn rule, and a link
-// styled as .btn picks up different padding than a <button> does.
-.wbo-community-header .wbo-community-header__actions .btn,
+// height on .btn at higher specificity than a plain .btn rule.
 .wbo-about .wbo-about__card .wbo-about__button {
   display: inline-flex;
   align-items: center;
@@ -28,68 +63,12 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   height: 40px;
   padding-block: 0;
   padding-inline: 1.1em;
-
-  // Links styled as .btn don't get core's pill radius; match the buttons.
   border-radius: var(--d-button-border-radius);
   text-decoration: none;
 
   .wbo-icon {
     flex-shrink: 0;
   }
-}
-
-// Phone header buttons (the mockup): a solid orange Create topic and an
-// outlined Discord, sentence case -- not the tonal .btn look, which read too
-// heavy stacked in a narrow header.
-.wbo-community-header .wbo-community-header__actions .btn,
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .btn:hover {
-  height: 44px;
-  border-width: 1px;
-  border-style: solid;
-  box-shadow: none;
-  font-size: var(--font-0);
-  font-weight: 700;
-  font-stretch: normal;
-  text-transform: none;
-}
-
-.wbo-community-header .wbo-community-header__actions .btn-primary,
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .btn-primary:hover {
-  border-color: transparent;
-  background: var(--wbo-orange);
-  color: #151a2c;
-
-  .wbo-icon {
-    color: #151a2c;
-  }
-}
-
-.wbo-community-header .wbo-community-header__actions .wbo-btn-discord,
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .wbo-btn-discord:hover {
-  border-color: var(--redditish-border-color);
-  background: transparent;
-  color: var(--wbo-text);
-
-  .wbo-icon,
-  .d-icon {
-    color: #5865f2;
-  }
-}
-
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .btn:hover {
-  opacity: 0.85;
 }
 
 // ── About panel ─────────────────────────────────────────────────────────────
@@ -286,7 +265,6 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
     @media screen and (width <= $wbo-phone-bp) {
       display: flex;
-      flex-wrap: wrap;
       gap: 0.5em;
     }
   }
@@ -305,7 +283,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
   &__tab {
     height: 40px;
-    padding: 0 1.1em;
+    padding: 0 12px;
     border: 0;
     border-radius: 100px;
     background: transparent;
