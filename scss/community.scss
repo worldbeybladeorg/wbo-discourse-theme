@@ -473,8 +473,27 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     background: none;
   }
 
+  // Out of its card the field was easy to miss next to the phone's orange
+  // Create topic button, so it takes that button's accent: a 2px orange
+  // border (the .btn-primary edge), with the button's wash on hover.
   .custom-post-bar .custom-post-bar-contents input[type="text"] {
+    border: 2px solid var(--wbo-orange);
     background: var(--secondary);
+    cursor: pointer;
+
+    &::placeholder {
+      color: var(--wbo-label);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: var(--wbo-orange);
+      background: color-mix(
+        in srgb,
+        var(--wbo-orange) var(--wbo-btn-fill-rest),
+        var(--secondary)
+      );
+    }
   }
 }
 
