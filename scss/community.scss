@@ -13,8 +13,14 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 // as .btn-primary (common.scss): 2px accent border + a wash of it.
 .btn.wbo-btn-discord:not(.btn-icon) {
   --btn-accent: #5865f2;
-  --btn-ink: var(--wbo-text);
+  --btn-ink: var(--wbo-btn-ink-discord);
   color: var(--btn-ink);
+  text-shadow: var(--wbo-btn-text-shadow);
+
+  .discourse-no-touch &:hover,
+  &:visited {
+    color: var(--btn-ink);
+  }
 }
 
 // Header buttons use the site's real .btn sizing and type (common.scss:
@@ -59,7 +65,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   .wbo-community-header__actions
   .wbo-btn-discord
   .d-icon {
-  color: #5865f2;
+  color: var(--wbo-btn-icon-discord);
 }
 
 // Links styled as .btn don't get core's pill radius; match the buttons.
