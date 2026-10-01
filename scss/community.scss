@@ -460,28 +460,21 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
-// Desktop: the "Create topic" bar and the filter pills read as one card (the
-// mockup), and the fake field is pill-shaped on the page colour. Only where
-// nothing sits between them -- on tablets the Feed/About tabs do.
-@media screen and (width > $wbo-rail-hidden-bp) {
-  .list-controls:has(.custom-post-bar-contents) {
-    gap: 0;
+// Desktop: no card around the "Create topic" bar -- just the avatar and the
+// field on the page, with the feed tabs as their own strip below (see
+// #navigation-bar further down). The field takes the card colour so it still
+// reads as an input on the page background.
+@media screen and (width > $wbo-phone-bp) {
+  .custom-post-bar .custom-post-bar-contents,
+  .discourse-no-touch .custom-post-bar .custom-post-bar-contents:hover {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
 
-    .custom-post-bar-contents {
-      border-bottom: 0;
-      border-radius: var(--wbo-card-radius) var(--wbo-card-radius) 0 0;
-      padding-bottom: 8px;
-
-      &:hover {
-        border-color: var(--redditish-border-color);
-      }
-    }
-
-    #navigation-bar {
-      border-top: 0;
-      border-radius: 0 0 var(--wbo-card-radius) var(--wbo-card-radius);
-      padding-top: 8px;
-    }
+  .custom-post-bar .custom-post-bar-contents input[type="text"] {
+    background: var(--secondary);
   }
 }
 
@@ -520,15 +513,18 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 }
 
 // Desktop feed filters (Discourse's #navigation-bar: Latest, Unread, Hot…)
-// as WordPress-style underline tabs, matching the phone Feed/About tabs:
-// muted 600 text at 16px / 110% width, a 2px orange underline on the active
-// one, sitting on the card's bottom hairline (top: 1px lays the marker over
-// it). Phones keep their own header, so this stops at the phone breakpoint.
+// as a WordPress .browse-view-tabs strip, outside any card: muted 600 text
+// at 16px / 110% width on the page, a 1px hairline under the row, and a 2px
+// orange underline on the active filter laid over it (top: 1px). Phones keep
+// their own header, so this stops at the phone breakpoint.
 @media screen and (width > $wbo-phone-bp) {
   #navigation-bar.nav-pills {
     gap: 4px;
-    padding-bottom: 0;
-    padding-left: 0;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--redditish-border-color);
+    border-radius: 0;
+    background: none;
 
     > li {
       position: relative;
