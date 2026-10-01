@@ -453,8 +453,15 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     gap: 0;
   }
 
-  body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create {
+  // ...until it scrolls out of view: then the floating one comes back
+  // (wbo-community-header.gjs toggles the body class).
+  body:has(.wbo-community-header .btn-primary):not(.wbo-header-create-offscreen)
+    .wbo-bottom-bar__create {
     display: none;
+  }
+
+  body.wbo-header-create-offscreen .wbo-bottom-bar__create {
+    animation: wbo-fade-in 0.2s ease; // defined in wbo-site-nav.scss
   }
 }
 

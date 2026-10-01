@@ -4,6 +4,7 @@ import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
+import { modifier } from "ember-modifier";
 import icon from "discourse/helpers/d-icon";
 import getURL from "discourse/lib/get-url";
 import Composer from "discourse/models/composer";
@@ -12,6 +13,10 @@ import { wboIcon } from "../lib/wbo-icon";
 import WboAboutPanel from "./wbo-about-panel";
 
 const ABOUT_CLASS = "wbo-about-tab-open";
+const CREATE_OFFSCREEN_CLASS = "wbo-header-create-offscreen";
+// The WBO nav bar is fixed over the top 56px, so a button scrolled under it
+// counts as out of view.
+const NAV_HEIGHT = 56;
 
 // Narrow-screen header for the top-level feeds, Reddit style:
 //   [Create topic] [Discord]
@@ -29,6 +34,26 @@ export default class WboCommunityHeader extends Component {
 
   @tracked tab = "feed";
   @tracked sortOpen = false;
+
+  // Watches the header's Create topic button: once it scrolls out of view
+  // (under the nav bar), body gets CREATE_OFFSCREEN_CLASS and the floating
+  // create button in the bottom corner comes back (scss/community.scss).
+  watchCreateButton = modifier((element) => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        document.body.classList.toggle(
+          CREATE_OFFSCREEN_CLASS,
+          !entry.isIntersecting
+        );
+      },
+      { rootMargin: `-${NAV_HEIGHT}px 0px 0px 0px` }
+    );
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      document.body.classList.remove(CREATE_OFFSCREEN_CLASS);
+    };
+  });
 
   constructor() {
     super(...arguments);
@@ -157,6 +182,7 @@ export default class WboCommunityHeader extends Component {
               type="button"
               class="btn btn-primary"
               {{on "click" this.createTopic}}
+              {{this.watchCreateButton}}
             >
               {{wboIcon "pencil" 18}}
               <span>{{i18n
