@@ -110,19 +110,19 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     display: flex;
     align-items: center;
     gap: 0.75em;
-    min-height: 48px; // .list-controls' gap spaces it from the navigation bar
-    padding: 6px 8px 6px 14px;
+    min-height: 56px;
+    padding: 5px 5px 5px 16px;
     box-sizing: border-box;
-    border: 1px solid color-mix(in srgb, #5865f2 45%, transparent);
-    border-radius: var(--wbo-card-radius);
-    background: color-mix(in srgb, #5865f2 12%, var(--secondary));
+    border: 1px solid color-mix(in srgb, #5865f2 50%, transparent);
+    border-radius: 100px;
+    background: color-mix(in srgb, #5865f2 14%, var(--secondary));
     color: var(--wbo-text);
     text-decoration: none;
 
     &:hover,
     &:focus-visible {
-      color: var(--wbo-text);
       border-color: #5865f2;
+      color: var(--wbo-text);
     }
   }
 
@@ -136,33 +136,42 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     flex: 1 1 auto;
     flex-direction: row;
     align-items: center;
-    text-align: start;
-    gap: 0.5em;
+    gap: 0.6em;
     min-width: 0;
+    font-size: var(--font-up-1);
     font-weight: 600;
+    text-align: start;
   }
 
   &__dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     flex-shrink: 0;
     border-radius: 50%;
     background: #23a55a;
-    box-shadow: 0 0 0 3px rgb(35 165 90 / 0.2);
+    box-shadow: 0 0 0 4px rgb(35 165 90 / 0.25);
   }
 
+  // Full-height pill inset in the strip. White on #4752c4 is 6.3:1, and it
+  // holds on both colour schemes since the strip's own wash doesn't reach it.
   &__join {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 0.25em;
-    height: 34px;
-    padding: 0 0.9em;
+    align-self: stretch;
+    gap: 0.45em;
+    padding: 0 1.1em;
     border-radius: 100px;
     background: #4752c4;
     color: #fff;
-    font-size: var(--font-down-1);
     font-weight: 700;
+    white-space: nowrap;
+
+    .d-icon {
+      width: 1.15em;
+      height: 1.15em;
+      color: #fff;
+    }
   }
 }
 

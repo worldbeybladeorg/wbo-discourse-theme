@@ -1,5 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 import { fetchOnlineCount } from "./wbo-about-panel";
 
@@ -52,6 +53,9 @@ export default class WboDiscordStrip extends Component {
           {{/if}}
         </span>
         <span class="wbo-discord-strip__join">
+          {{! Font Awesome's brand icon from Discourse's own set; about.json
+              adds it to the icon subset (modifiers.svg_icons). }}
+          {{icon "fab-discord"}}
           {{i18n (themePrefix "discord_strip.join")}}
         </span>
       </a>

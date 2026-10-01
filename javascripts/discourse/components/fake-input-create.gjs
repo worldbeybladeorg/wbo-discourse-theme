@@ -37,24 +37,29 @@ export default class FakeInputCreate extends Component {
     if (!this.topMenu.includes(current)) {
       return null;
     }
-    return this.topMenu.map((name) => {
-      let label = i18n(`filters.${name}.title`);
-      let count = 0;
-      if (name === "unread") {
-        count = this.topicTrackingState.countUnread();
-      } else if (name === "new") {
-        count = this.topicTrackingState.countNew();
-      }
-      if (count > 0) {
-        label = `${label} (${count})`;
-      }
-      return {
-        name,
-        label,
-        href: getURL(`/${name}`),
-        active: name === current,
-      };
-    });
+    // New and Categories are left off: four pills don't fit a phone, and
+    // Categories is in the menu drawer.
+    const hidden = ["new", "categories"];
+    return this.topMenu
+      .filter((name) => !hidden.includes(name))
+      .map((name) => {
+        let label = i18n(`filters.${name}.title`);
+        let count = 0;
+        if (name === "unread") {
+          count = this.topicTrackingState.countUnread();
+        } else if (name === "new") {
+          count = this.topicTrackingState.countNew();
+        }
+        if (count > 0) {
+          label = `${label} (${count})`;
+        }
+        return {
+          name,
+          label,
+          href: getURL(`/${name}`),
+          active: name === current,
+        };
+      });
   }
 
   get category() {

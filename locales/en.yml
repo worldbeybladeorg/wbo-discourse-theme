@@ -22,4 +22,4 @@ en:
   discord_strip:
     title: "Chat live on Discord"
     online: "%{count} online"
-    join: "Join Discord"
+    join: "Join WBO Discord"
