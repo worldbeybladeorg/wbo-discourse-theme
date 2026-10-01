@@ -106,14 +106,34 @@ body {
       grid-template-areas:
         "category-banner category-banner category-banner category-banner category-banner category-banner"
         "sidebar lspace content sidebar2 rspace sidebar-spacer";
+
+      // Feed + right sidebar together are as wide as the top nav's content
+      // (--wbo-page-max-width minus its two gutters = 1168px), so their outer
+      // edges line up with the logo and the bell: 832px feed + 24px + 312px
+      // sidebar. There is no column-gap here: the only gap wanted is the 24px
+      // between feed and sidebar (built into the sidebar's column, see
+      // .custom-right-sidebar below). A grid gap would also sit either side
+      // of the empty spacer columns and push the edges in by 48px. The
+      // spacers keep a minimum of one nav gutter instead.
       grid-template-columns:
-        var(--d-sidebar-width) 1fr minmax(0, 640px)
-        312px 1fr var(--d-sidebar-width);
+        var(--d-sidebar-width) minmax(var(--wbo-page-gutter), 1fr)
+        minmax(0, 832px) calc(312px + 1.5em)
+        minmax(var(--wbo-page-gutter), 1fr) var(--d-sidebar-width);
       grid-template-rows: auto 1fr;
-      gap: 0 1.5em;
+      gap: 0;
+
+      #main-outlet {
+        max-width: none; // the column sets the width
+      }
+
+      .custom-right-sidebar {
+        margin-left: 1.5em;
+      }
 
       @media screen and (width <= 1500px) {
-        grid-template-columns: auto 1fr minmax(0, 640px) 312px 1fr auto;
+        grid-template-columns:
+          auto minmax(var(--wbo-page-gutter), 1fr) minmax(0, 832px)
+          calc(312px + 1.5em) minmax(var(--wbo-page-gutter), 1fr) auto;
       }
 
       @media screen and (width <= 1160px) {
@@ -121,6 +141,11 @@ body {
           "category-banner category-banner category-banner category-banner category-banner"
           "sidebar lspace content rspace sidebar-spacer";
         grid-template-columns: auto 1fr minmax(0, 640px) 1fr auto;
+        gap: 0 1.5em;
+
+        #main-outlet {
+          max-width: 640px;
+        }
 
         .custom-right-sidebar {
           display: none;
