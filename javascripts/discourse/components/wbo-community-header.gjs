@@ -5,6 +5,7 @@ import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import icon from "discourse/helpers/d-icon";
+import getURL from "discourse/lib/get-url";
 import Composer from "discourse/models/composer";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
@@ -27,6 +28,7 @@ export default class WboCommunityHeader extends Component {
   @service topicTrackingState;
 
   @tracked tab = "feed";
+  @tracked sortOpen = false;
 
   constructor() {
     super(...arguments);
@@ -36,6 +38,7 @@ export default class WboCommunityHeader extends Component {
   willDestroy() {
     super.willDestroy(...arguments);
     this.router.off("routeDidChange", this.resetTab);
+    this.closeSort();
     document.body.classList.remove(ABOUT_CLASS);
   }
 
@@ -43,6 +46,7 @@ export default class WboCommunityHeader extends Component {
   // so the About tab can't leave a hidden feed behind on the next page.
   @action
   resetTab() {
+    this.closeSort();
     this.setTab("feed");
   }
 
@@ -82,7 +86,12 @@ export default class WboCommunityHeader extends Component {
       if (count > 0) {
         label = `${label} (${count})`;
       }
-      return { name, label, selected: name === this.currentFilter };
+      return {
+        name,
+        label,
+        href: getURL(`/${name}`),
+        selected: name === this.currentFilter,
+      };
     });
   }
 
@@ -96,9 +105,39 @@ export default class WboCommunityHeader extends Component {
     document.body.classList.toggle(ABOUT_CLASS, tab === "about");
   }
 
+  // Custom sort menu (not a native <select>, so it matches the header's type
+  // and the site's surfaces). Closes on outside tap, Escape, or navigation.
   @action
-  changeSort(event) {
-    this.router.transitionTo(`discovery.${event.target.value}`);
+  toggleSort() {
+    this.sortOpen ? this.closeSort() : this.openSort();
+  }
+
+  openSort() {
+    this.sortOpen = true;
+    document.addEventListener("click", this.onOutsideClick, true);
+    document.addEventListener("keydown", this.onSortKeydown);
+  }
+
+  @action
+  closeSort() {
+    this.sortOpen = false;
+    document.removeEventListener("click", this.onOutsideClick, true);
+    document.removeEventListener("keydown", this.onSortKeydown);
+  }
+
+  @action
+  onOutsideClick(event) {
+    if (!event.target.closest(".wbo-community-header__sort")) {
+      this.closeSort();
+    }
+  }
+
+  @action
+  onSortKeydown(event) {
+    if (event.key === "Escape") {
+      this.closeSort();
+      document.querySelector(".wbo-community-header__sort-trigger")?.focus();
+    }
   }
 
   @action
@@ -161,25 +200,34 @@ export default class WboCommunityHeader extends Component {
           </div>
 
           {{#unless this.isAbout}}
-            <label class="wbo-community-header__sort">
-              <span class="sr-only">
-                {{i18n (themePrefix "community_header.sort")}}
-              </span>
-              {{! The visible label; the native select sits invisibly on top
-                  of it, so it opens the OS picker but sizes to the label. }}
-              <span class="wbo-community-header__sort-label" aria-hidden="true">
-                {{this.currentSortLabel}}
-              </span>
-              <select {{on "change" this.changeSort}}>
-                {{#each this.sortOptions as |opt|}}
-                  <option
-                    value={{opt.name}}
-                    selected={{opt.selected}}
-                  >{{opt.label}}</option>
-                {{/each}}
-              </select>
-              {{wboIcon "caret-down" 16}}
-            </label>
+            <div class="wbo-community-header__sort">
+              <button
+                type="button"
+                class="wbo-community-header__sort-trigger"
+                aria-haspopup="true"
+                aria-expanded={{if this.sortOpen "true" "false"}}
+                aria-label={{i18n (themePrefix "community_header.sort")}}
+                {{on "click" this.toggleSort}}
+              >
+                <span>{{this.currentSortLabel}}</span>
+                {{wboIcon "caret-down" 16}}
+              </button>
+              {{#if this.sortOpen}}
+                <ul class="wbo-community-header__sort-menu">
+                  {{#each this.sortOptions as |opt|}}
+                    <li>
+                      <a
+                        href={{opt.href}}
+                        class="wbo-community-header__sort-item
+                          {{if opt.selected 'active'}}"
+                        aria-current={{if opt.selected "page"}}
+                        {{on "click" this.closeSort}}
+                      >{{opt.label}}</a>
+                    </li>
+                  {{/each}}
+                </ul>
+              {{/if}}
+            </div>
           {{/unless}}
         </div>
       </div>

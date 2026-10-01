@@ -316,25 +316,80 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
     @media screen and (width <= $wbo-phone-bp) {
       position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25em;
-      height: 40px;
-      padding: 0 0.5em;
-      color: var(--wbo-muted);
-      font-size: var(--font-down-1);
-      font-weight: 600;
+      display: block;
+    }
+  }
 
-      // Invisible, covering the label: tapping opens the native picker.
-      select {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        opacity: 0;
-        cursor: pointer;
-      }
+  // Same type and box as the Feed/About tabs.
+  &__sort-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 100px;
+    background: transparent;
+    color: var(--wbo-muted);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &[aria-expanded="true"],
+    .discourse-no-touch &:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.08);
+      color: var(--wbo-text);
+    }
+
+    .wbo-icon {
+      transition: transform 0.15s;
+    }
+
+    &[aria-expanded="true"] .wbo-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__sort-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 10;
+    min-width: 180px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border: 1px solid var(--redditish-border-color);
+    border-radius: var(--wbo-card-radius);
+    background: var(--secondary);
+    box-shadow: 0 8px 24px var(--wbo-shadow-color);
+  }
+
+  &__sort-item {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--wbo-text);
+    font-weight: 500;
+    text-decoration: none;
+
+    // Visited links must not go blue (a:visited out-specifies one class).
+    &:visited {
+      color: var(--wbo-text);
+    }
+
+    .discourse-no-touch &:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.06);
+      color: var(--wbo-text);
+    }
+
+    &.active,
+    &.active:visited {
+      background: color-mix(in srgb, var(--wbo-orange) 12%, transparent);
+      color: var(--wbo-orange-text);
+      font-weight: 600;
     }
   }
 
