@@ -538,7 +538,20 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 // orange underline on the active filter laid over it (top: 1px). Phones keep
 // their own header, so this stops at the phone breakpoint.
 @media screen and (width > $wbo-phone-bp) {
+  // Core gives .navigation-container a 12px bottom margin on top of the
+  // strip's own 16px; drop it so the spacing below the tabs is the 16px gap
+  // the sidebar uses.
+  #main-outlet .list-controls .navigation-container {
+    margin-bottom: 0;
+  }
+
+  // 44px tall, the height of the sidebar's Create topic button, so the
+  // first topic card starts exactly level with the sidebar's About card
+  // (both 16px below a 44px row).
   #navigation-bar.nav-pills {
+    box-sizing: border-box;
+    align-items: flex-end;
+    min-height: 44px;
     gap: 4px;
     padding: 0;
     border: 0;
