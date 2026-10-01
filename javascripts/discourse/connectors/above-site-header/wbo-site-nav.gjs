@@ -408,8 +408,12 @@ export default class WboSiteNav extends Component {
     {{! ── Nav bar (covers .d-header at the same position) ─────────────── }}
     {{! Mirrors WordPress header.php: .wbo-site-nav is the full-bleed fixed
         bar (.site-header), .wbo-site-nav__inner the 1200px-max row
-        (.site-header-inner) — hamburger | logo | links | user. }}
-    <nav class="wbo-site-nav" aria-label="Primary">
+        (.site-header-inner) — hamburger | logo | links | user. The drawer
+        and its backdrop live INSIDE the bar, as .nav-drawer does inside
+        .site-header: the bar is a stacking context (z 1002), so only
+        siblings inside it can be layered hamburger (1020) > drawer (1009)
+        > backdrop (1008). Outside it, the drawer covered the X. }}
+    <div class="wbo-site-nav">
       <div class="wbo-site-nav__inner">
         {{! Below 960px the links move into the drawer, like WordPress. }}
         <button
@@ -439,14 +443,14 @@ export default class WboSiteNav extends Component {
           {{/if}}
         </a>
 
-        <div class="wbo-site-nav__links">
+        <nav class="wbo-site-nav__links" aria-label="Primary">
           {{#each this.navItems as |item|}}
             <a
               href={{item.url}}
               class="wbo-site-nav__link {{if item.active 'is-active'}}"
             >{{item.label}}</a>
           {{/each}}
-        </div>
+        </nav>
 
         <div class="wbo-site-nav__right">
           {{#if this.currentUser}}
@@ -521,7 +525,6 @@ export default class WboSiteNav extends Component {
           {{/if}}
         </div>
       </div>
-    </nav>
 
     {{! ── Drawer (below 960px) ─────────────────────────────────────────── }}
     <div
@@ -629,6 +632,7 @@ export default class WboSiteNav extends Component {
         role="presentation"
       ></div>
     {{/if}}
+    </div>
 
     {{! ── Mobile: floating create / reply button ──────────────────────── }}
     <div class="wbo-bottom-bar">

@@ -29,7 +29,7 @@
   inset: 0;
   z-index: 399;
   background: var(--wbo-composer-scrim);
-  animation: wboFadeIn 0.2s ease; // defined in wbo-site-nav.scss
+  animation: wbo-fade-in 0.2s ease; // defined in wbo-site-nav.scss
 
   // The component guards on site.mobileView, which is device detection, not
   // width -- a narrow desktop window still renders it. Below sm (40rem) core
