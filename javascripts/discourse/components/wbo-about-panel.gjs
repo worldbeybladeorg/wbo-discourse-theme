@@ -126,9 +126,7 @@ export default class WboAboutPanel extends Component {
   }
 
   get rules() {
-    return (settings.rules || [])
-      .filter((r) => r?.title)
-      .map((r, i) => ({ ...r, open: i === 0 }));
+    return (settings.rules || []).filter((r) => r?.title);
   }
 
   <template>
@@ -177,7 +175,7 @@ export default class WboAboutPanel extends Component {
             {{#each this.rules as |rule|}}
               <li>
                 {{#if rule.detail}}
-                  <details class="wbo-about__rule" open={{rule.open}}>
+                  <details class="wbo-about__rule">
                     <summary>
                       <span class="wbo-about__rule-title">{{rule.title}}</span>
                       {{wboIcon "caret-down" 16 "wbo-about__rule-caret"}}
