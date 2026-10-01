@@ -13,12 +13,6 @@
   justify-content: center;
 }
 
-// The desktop "Create topic" bar -- phones use the floating create button.
-// Only the bar: the Discord strip shares this outlet (scss/community.scss).
-.custom-post-bar-contents {
-  display: none;
-}
-
 .custom-topic-layout {
   h2 {
     line-height: 1.2;

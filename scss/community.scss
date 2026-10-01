@@ -131,25 +131,24 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     margin-top: 1em;
   }
 
-  &__icon {
-    flex-shrink: 0;
-    color: #5865f2;
-  }
-
   &__text {
     display: flex;
     flex: 1 1 auto;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    text-align: start;
+    gap: 0.5em;
     min-width: 0;
-  }
-
-  &__title {
     font-weight: 600;
   }
 
-  &__online {
-    color: var(--wbo-muted);
-    font-size: var(--font-down-1);
+  &__dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #23a55a;
+    box-shadow: 0 0 0 3px rgb(35 165 90 / 0.2);
   }
 
   &__join {
@@ -223,5 +222,57 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
   &__count {
     font-size: var(--font-down-1);
+  }
+}
+
+// Phones: the feed filters inside the create card (fake-input-create.gjs),
+// styled like desktop's pill row, replacing Discourse's mobile dropdown.
+.wbo-feed-filters {
+  display: none;
+}
+
+@media screen and (width <= $wbo-phone-bp) {
+  .custom-post-bar .custom-post-bar-contents {
+    flex-wrap: wrap;
+    row-gap: 12px;
+
+    input[type="text"] {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .avatar {
+      margin-right: 0.75em;
+    }
+  }
+
+  .wbo-feed-filters {
+    display: flex;
+    flex: 1 0 100%;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &__link {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 100px;
+      color: var(--wbo-text);
+      white-space: nowrap;
+      text-decoration: none;
+
+      &.active {
+        background: color-mix(in srgb, var(--wbo-orange) 12%, transparent);
+        color: var(--wbo-orange-text);
+      }
+    }
+  }
+
+  // The filters in the card replace Discourse's navigation bar on the feeds.
+  .list-controls:has(.wbo-feed-filters) #navigation-bar {
+    display: none;
   }
 }

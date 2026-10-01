@@ -1,7 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { i18n } from "discourse-i18n";
-import { wboIcon } from "../lib/wbo-icon";
 import { fetchOnlineCount } from "./wbo-about-panel";
 
 // Slim Discord promo at the top of the feed, shown only where the right
@@ -29,7 +28,7 @@ export default class WboDiscordStrip extends Component {
     if (this.onlineCount === null) {
       return null;
     }
-    return i18n(themePrefix("about_panel.online_now"), {
+    return i18n(themePrefix("discord_strip.online"), {
       count: this.onlineCount.toLocaleString(),
     });
   }
@@ -42,18 +41,18 @@ export default class WboDiscordStrip extends Component {
         target="_blank"
         rel="noopener noreferrer"
       >
-        {{wboIcon "chat" 18 "wbo-discord-strip__icon"}}
         <span class="wbo-discord-strip__text">
-          <span class="wbo-discord-strip__title">
-            {{i18n (themePrefix "discord_strip.title")}}
-          </span>
           {{#if this.onlineLabel}}
-            <span class="wbo-discord-strip__online">{{this.onlineLabel}}</span>
+            <span
+              class="wbo-discord-strip__dot"
+              aria-hidden="true"
+            ></span>{{this.onlineLabel}}
+          {{else}}
+            {{i18n (themePrefix "discord_strip.title")}}
           {{/if}}
         </span>
         <span class="wbo-discord-strip__join">
           {{i18n (themePrefix "discord_strip.join")}}
-          {{wboIcon "arrow-right" 14}}
         </span>
       </a>
     {{/if}}

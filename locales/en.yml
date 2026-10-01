@@ -5,6 +5,7 @@ en:
   about_admin_tip_headline: "Psst, hey admins!"
   about_category_admin_tip_description: "You can add a category description here by editing <a href=%{topicUrl}>this post</a>."
   post_input_placeholder: "Create topic"
+  feed_filters: "Feeds"
   drafts_link:
     one: "Your draft (%{count})"
     other: "Your drafts (%{count})"
@@ -19,5 +20,6 @@ en:
     join_discord: "Join our Discord"
     online_now: "%{count} online now"
   discord_strip:
-    title: "Chat live on the WBO Discord"
-    join: "Join"
+    title: "Chat live on Discord"
+    online: "%{count} online"
+    join: "Join Discord"
