@@ -24,7 +24,25 @@
     max-height: calc(100vh - var(--header-offset) - 1.5em);
     overflow-y: auto;
     overscroll-behavior: contain;
+
+    // A thin, trackless thumb that only shows while the pointer is over the
+    // sidebar, instead of the grey OS scrollbar.
     scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s;
+
+    &:hover,
+    &:focus-within {
+      // --wbo-fg-rgb is comma-separated, so it needs the rgba() form.
+      /* stylelint-disable-next-line color-function-alias-notation */
+      scrollbar-color: rgba(var(--wbo-fg-rgb), 0.25) transparent;
+    }
+
+    // In a scrolling flex column the children would otherwise shrink to fit
+    // (opening a rule squashed the Create topic button).
+    > * {
+      flex-shrink: 0;
+    }
   }
 
   &_category-about,
