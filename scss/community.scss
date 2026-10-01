@@ -447,6 +447,25 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     padding: 12px 16px 0;
     background: var(--secondary);
   }
+
+  // Discourse's own phone layout (edge-to-edge page with --d-wrap-padding-x
+  // either side) stops at 640px, but this theme's phone layout runs to
+  // 719px. In between, the feed was a centred 640px column with wider side
+  // margins, so the band above fell short of the left edge and overshot the
+  // right. Use the same edge-to-edge page for the whole phone range.
+  // (html + the attribute selector: to out-rank the grid rules in
+  // common.scss.)
+  html
+    body[class*="navigation-"]:has(.wbo-community-header)
+    #main-outlet-wrapper {
+    grid-template-columns: auto 0 minmax(0, 1fr) 0 auto;
+    gap: 0;
+    padding-inline: var(--d-wrap-padding-x);
+
+    #main-outlet {
+      max-width: none;
+    }
+  }
 }
 
 @media screen and (width <= $wbo-rail-hidden-bp) {
