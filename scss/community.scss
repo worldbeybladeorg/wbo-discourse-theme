@@ -167,7 +167,10 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     border-radius: 100px;
     background: #4752c4;
     color: #fff;
-    font-weight: 600;
+
+    // The site's button type (common.scss .btn): 550 at 110% width.
+    font-weight: 550;
+    font-stretch: 110%;
     white-space: nowrap;
 
     .d-icon {
