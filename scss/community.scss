@@ -1,10 +1,10 @@
-// ── Community right sidebar, Discord strip, create-topic bar ────────────────
+// ── Community About panel + narrow-screen community header ──────────────────
 //
-// components/wbo-about-panel.gjs: the right sidebar on the top-level feeds
-// (description + Discord box). components/wbo-discord-strip.gjs: a slim
-// Discord promo at the top of the feed where that sidebar is hidden
-// (<= 1160px). Type comes from the theme scale; this sheet sets layout and
-// colour only.
+// components/wbo-about-panel.gjs: right sidebar on the top-level feeds, and
+// the About tab on narrow screens. components/wbo-community-header.gjs: the
+// Feed/About tabs (<= 1160px, where the right sidebar is hidden) plus the
+// Create topic / Discord buttons and sort menu (<= 719px, phones).
+// Type comes from the theme scale; this sheet sets layout and colour only.
 
 $wbo-rail-hidden-bp: 1160px; // matches the grid in common.scss
 $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
@@ -20,6 +20,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 // Longhands at three-class specificity: core sets padding-block/-inline and
 // height on .btn at higher specificity than a plain .btn rule, and a link
 // styled as .btn picks up different padding than a <button> does.
+.wbo-community-header .wbo-community-header__actions .btn,
 .wbo-about .wbo-about__card .wbo-about__button {
   display: inline-flex;
   align-items: center;
@@ -35,6 +36,60 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   .wbo-icon {
     flex-shrink: 0;
   }
+}
+
+// Phone header buttons (the mockup): a solid orange Create topic and an
+// outlined Discord, sentence case -- not the tonal .btn look, which read too
+// heavy stacked in a narrow header.
+.wbo-community-header .wbo-community-header__actions .btn,
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .btn:hover {
+  height: 44px;
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: none;
+  font-size: var(--font-0);
+  font-weight: 700;
+  font-stretch: normal;
+  text-transform: none;
+}
+
+.wbo-community-header .wbo-community-header__actions .btn-primary,
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .btn-primary:hover {
+  border-color: transparent;
+  background: var(--wbo-orange);
+  color: #151a2c;
+
+  .wbo-icon {
+    color: #151a2c;
+  }
+}
+
+.wbo-community-header .wbo-community-header__actions .wbo-btn-discord,
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .wbo-btn-discord:hover {
+  border-color: var(--redditish-border-color);
+  background: transparent;
+  color: var(--wbo-text);
+
+  .wbo-icon,
+  .d-icon {
+    color: #5865f2;
+  }
+}
+
+.discourse-no-touch
+  .wbo-community-header
+  .wbo-community-header__actions
+  .btn:hover {
+  opacity: 0.85;
 }
 
 // ── About panel ─────────────────────────────────────────────────────────────
@@ -100,90 +155,243 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     height: 44px;
     justify-content: center;
   }
-}
 
-// ── Discord strip (narrow screens) ──────────────────────────────────────────
-.wbo-discord-strip {
-  display: none;
+  &__rules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
 
-  @media screen and (width <= $wbo-rail-hidden-bp) {
+    li {
+      border-top: 1px solid var(--redditish-border-color);
+
+      &:last-child {
+        border-bottom: 1px solid var(--redditish-border-color);
+      }
+    }
+  }
+
+  &__rule {
     display: flex;
     align-items: center;
     gap: 0.75em;
     min-height: 44px;
-    padding: 3px 3px 3px 12px;
-    box-sizing: border-box;
-    border: 1px solid color-mix(in srgb, #5865f2 50%, transparent);
-    border-radius: 100px;
-    background: color-mix(in srgb, #5865f2 14%, var(--secondary));
-    color: var(--wbo-text);
-    text-decoration: none;
 
-    &:hover,
-    &:focus-visible {
-      border-color: #5865f2;
-      color: var(--wbo-text);
+    &:is(details) {
+      display: block;
+    }
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 0.75em;
+      min-height: 44px;
+      cursor: pointer;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+
+    > .wbo-about__muted {
+      margin: 0 0 0.75em;
     }
   }
 
-  // Under the desktop "Create topic" bar on tablets.
+  &__rule-title {
+    flex: 1 1 auto;
+    font-weight: 500;
+  }
+
+  &__rule-caret {
+    flex-shrink: 0;
+    color: var(--wbo-muted);
+    transition: transform 0.15s;
+
+    details[open] & {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__categories {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li + li {
+      border-top: 1px solid var(--redditish-border-color);
+    }
+  }
+
+  &__category {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75em;
+    min-height: 44px;
+    padding: 0.6em 0;
+    color: var(--wbo-text);
+    text-decoration: none;
+  }
+
+  &__category-swatch {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    margin-top: 0.4em;
+    border-radius: 3px;
+  }
+
+  &__category-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__category-name {
+    font-weight: 600;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    align-self: flex-start;
+    color: var(--wbo-blue-text);
+    font-weight: 600;
+  }
+}
+
+// ── Community header (narrow screens) ───────────────────────────────────────
+.wbo-community-header {
+  display: none;
+
+  @media screen and (width <= $wbo-rail-hidden-bp) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    margin-bottom: 1em;
+
+    @include custom-card {
+      padding: 12px 16px;
+    }
+  }
+
+  // The desktop "Create topic" bar sits directly above on tablets.
   .custom-post-bar-contents + & {
     margin-top: 1em;
   }
 
-  &__text {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5em;
-    min-width: 0;
+  &__actions {
+    display: none;
 
-    // Set on the span, not just the link: a:visited out-specifies a
-    // single class and turned the count link-blue.
-    color: var(--wbo-text);
-    font-weight: 500;
-    text-align: start;
-  }
-
-  &__dot {
-    width: 10px;
-    height: 10px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #23a55a;
-    box-shadow: 0 0 0 4px rgb(35 165 90 / 0.25);
-  }
-
-  // Full-height pill inset in the strip. White on #4752c4 is 6.3:1, and it
-  // holds on both colour schemes since the strip's own wash doesn't reach it.
-  &__join {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    align-self: stretch;
-    gap: 0.45em;
-    padding: 0 1.2em;
-    border-radius: 100px;
-    background: #4752c4;
-    color: #fff;
-
-    // The site's button type (common.scss .btn): 550 at 110% width.
-    font-weight: 550;
-    font-stretch: 110%;
-    white-space: nowrap;
-
-    .d-icon {
-      width: 1.15em;
-      height: 1.15em;
-      color: #fff;
+    @media screen and (width <= $wbo-phone-bp) {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5em;
     }
+  }
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5em;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 0.25em;
+  }
+
+  &__tab {
+    height: 40px;
+    padding: 0 1.1em;
+    border: 0;
+    border-radius: 100px;
+    background: transparent;
+    color: var(--wbo-muted);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &[aria-selected="true"] {
+      background: rgb(var(--wbo-fg-rgb), 0.08);
+      color: var(--wbo-text);
+    }
+
+    .discourse-no-touch &:hover {
+      color: var(--wbo-text);
+    }
+  }
+
+  &__sort {
+    display: none;
+
+    @media screen and (width <= $wbo-phone-bp) {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25em;
+      height: 40px;
+      padding: 0 0.5em;
+      color: var(--wbo-muted);
+      font-size: var(--font-down-1);
+      font-weight: 600;
+
+      // Invisible, covering the label: tapping opens the native picker.
+      select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+    }
+  }
+
+  &__about {
+    margin-bottom: 1em;
+  }
+}
+
+@media screen and (width <= $wbo-rail-hidden-bp) {
+  // About tab open: the panel replaces the feed.
+  body.wbo-about-tab-open {
+    #list-area,
+    #navigation-bar,
+    .navigation-controls {
+      display: none !important;
+    }
+  }
+}
+
+@media screen and (width <= $wbo-phone-bp) {
+  // Phones get the header's Create topic button instead of the desktop bar
+  // (mobile.scss does the same for Discourse's mobile view).
+  .custom-post-bar .custom-post-bar-contents {
+    display: none;
+  }
+
+  // The header's sort menu replaces Discourse's navigation bar, and its
+  // Create topic button replaces the floating one, on the feeds it covers.
+  .list-controls:has(.wbo-community-header) #navigation-bar {
+    display: none;
+  }
+
+  .list-controls:has(.wbo-community-header) {
+    gap: 0;
+  }
+
+  body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create {
+    display: none;
   }
 }
 
 // Desktop: the "Create topic" bar and the filter pills read as one card (the
 // mockup), and the fake field is pill-shaped on the page colour. Only where
-// nothing sits between them -- on tablets the Discord strip does.
+// nothing sits between them -- on tablets the Feed/About tabs do.
 @media screen and (width > $wbo-rail-hidden-bp) {
   .list-controls:has(.custom-post-bar-contents) {
     gap: 0;
@@ -237,57 +445,5 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
   &__count {
     font-size: var(--font-down-1);
-  }
-}
-
-// Phones: the feed filters inside the create card (fake-input-create.gjs),
-// styled like desktop's pill row, replacing Discourse's mobile dropdown.
-.wbo-feed-filters {
-  display: none;
-}
-
-@media screen and (width <= $wbo-phone-bp) {
-  .custom-post-bar .custom-post-bar-contents {
-    flex-wrap: wrap;
-    row-gap: 12px;
-
-    input[type="text"] {
-      flex: 1 1 0;
-      min-width: 0;
-    }
-
-    .avatar {
-      margin-right: 0.75em;
-    }
-  }
-
-  .wbo-feed-filters {
-    display: flex;
-    flex: 1 0 100%;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    &__link {
-      display: inline-flex;
-      flex-shrink: 0;
-      align-items: center;
-      height: 40px;
-      padding: 0 12px;
-      border-radius: 100px;
-      color: var(--wbo-text);
-      white-space: nowrap;
-      text-decoration: none;
-
-      &.active {
-        background: color-mix(in srgb, var(--wbo-orange) 12%, transparent);
-        color: var(--wbo-orange-text);
-      }
-    }
-  }
-
-  // The filters in the card replace Discourse's navigation bar on the feeds.
-  .list-controls:has(.wbo-feed-filters) #navigation-bar {
-    display: none;
   }
 }

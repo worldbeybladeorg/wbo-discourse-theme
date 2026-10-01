@@ -20,15 +20,15 @@ about_text:
   type: string
   textarea: true
   default: "World Beyblade Organization is a non-profit project to connect the Beyblade community and support independent, fan-run Beyblade events."
-  description: "Right sidebar (top-level feeds): the community description."
+  description: "About panel: the description at the top (right sidebar on desktop, About tab on mobile)."
 
 about_footnote:
   default: "Run by Fighting Spirits Inc., a registered nonprofit."
-  description: "Right sidebar: the small line under the description. Leave blank to hide."
+  description: "About panel: the small line under the description. Leave blank to hide."
 
 discord_invite_url:
   default: "https://discord.gg/92vf8usw"
-  description: "Discord invite link for the right sidebar's Join button and the Discord strip shown on narrow screens. Use a permanent (never-expiring) invite. Leave blank to hide both."
+  description: "Discord invite link for the right sidebar's Join button and the mobile header's Discord button. Use a permanent (never-expiring) invite. Leave blank to hide both."
 
 discord_server_id:
   default: "620289759171969096"
@@ -41,3 +41,26 @@ discord_heading:
 discord_description:
   default: "Trades, combos and event meetups on Discord."
   description: "Right sidebar: line under the Discord heading."
+
+rules:
+  type: objects
+  default:
+    - title: "Be kind to other bladers"
+      detail: ""
+    - title: "Post in the right category"
+      detail: ""
+    - title: "No spam or unapproved self-promotion"
+      detail: ""
+  schema:
+    name: rule
+    properties:
+      title:
+        type: string
+        required: true
+      detail:
+        type: string
+  description: "About panel (right sidebar and the mobile About tab): the short forum rules list. The full rules live on the guidelines page (rules_url); update both when the rules change."
+
+rules_url:
+  default: "/guidelines"
+  description: "About panel: where \"Read all rules\" goes."

@@ -1,5 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { service } from "@ember/service";
+import { htmlSafe } from "@ember/template";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 
@@ -12,7 +14,7 @@ let cachedCount = null;
 let cachedAt = 0;
 let inFlight = null;
 
-export async function fetchOnlineCount(serverId) {
+async function fetchOnlineCount(serverId) {
   if (cachedCount !== null && Date.now() - cachedAt < CACHE_MS) {
     return cachedCount;
   }
@@ -35,16 +37,19 @@ export async function fetchOnlineCount(serverId) {
   return inFlight;
 }
 
-// The right sidebar on the top-level feeds: a short description and the
-// Discord box. Narrow screens, where the sidebar is hidden, get the slim
-// wbo-discord-strip instead. Copy comes from theme settings.
+// The community "About" content. Right sidebar on wide screens:
+// description, Discord box, rules. About tab on narrow ones (@mobile):
+// description, rules and the category list -- no Discord box, since the
+// header's Discord button sits right above. Copy comes from theme settings.
 export default class WboAboutPanel extends Component {
+  @service site;
+
   @tracked onlineCount = null;
 
   constructor() {
     super(...arguments);
     const serverId = (settings.discord_server_id || "").trim();
-    if (serverId) {
+    if (serverId && !this.args.mobile) {
       fetchOnlineCount(serverId).then((n) => {
         if (!this.isDestroying && !this.isDestroyed) {
           this.onlineCount = n;
@@ -54,7 +59,23 @@ export default class WboAboutPanel extends Component {
   }
 
   get discordUrl() {
-    return (settings.discord_invite_url || "").trim();
+    return this.args.mobile ? "" : (settings.discord_invite_url || "").trim();
+  }
+
+  // Top-level categories the viewer can see (site.categories already omits
+  // ones they can't), for the About tab.
+  get categories() {
+    if (!this.args.mobile) {
+      return [];
+    }
+    return (this.site.categories || [])
+      .filter((c) => !c.parent_category_id && !c.isUncategorizedCategory)
+      .map((c) => ({
+        name: c.name,
+        url: c.url,
+        description: c.description_text,
+        swatchStyle: htmlSafe(`background-color: #${c.color}`),
+      }));
   }
 
   get onlineLabel() {
@@ -64,6 +85,12 @@ export default class WboAboutPanel extends Component {
     return i18n(themePrefix("about_panel.online_now"), {
       count: this.onlineCount.toLocaleString(),
     });
+  }
+
+  get rules() {
+    return (settings.rules || [])
+      .filter((r) => r?.title)
+      .map((r, i) => ({ ...r, open: i === 0 }));
   }
 
   <template>
@@ -106,6 +133,68 @@ export default class WboAboutPanel extends Component {
         </section>
       {{/if}}
 
+      {{#if this.rules.length}}
+        <section class="wbo-about__card">
+          <h2 class="wbo-about__heading">
+            {{i18n (themePrefix "about_panel.rules_heading")}}
+          </h2>
+          <ol class="wbo-about__rules">
+            {{#each this.rules as |rule|}}
+              <li>
+                {{#if rule.detail}}
+                  <details class="wbo-about__rule" open={{rule.open}}>
+                    <summary>
+                      <span class="wbo-about__rule-title">{{rule.title}}</span>
+                      {{wboIcon "caret-down" 16 "wbo-about__rule-caret"}}
+                    </summary>
+                    <p class="wbo-about__muted">{{rule.detail}}</p>
+                  </details>
+                {{else}}
+                  <div class="wbo-about__rule">
+                    <span class="wbo-about__rule-title">{{rule.title}}</span>
+                  </div>
+                {{/if}}
+              </li>
+            {{/each}}
+          </ol>
+          {{#if settings.rules_url}}
+            <a href={{settings.rules_url}} class="wbo-about__link">
+              {{i18n (themePrefix "about_panel.read_all_rules")}}
+              {{wboIcon "arrow-right" 14}}
+            </a>
+          {{/if}}
+        </section>
+      {{/if}}
+
+      {{#if this.categories.length}}
+        <section class="wbo-about__card">
+          <h2 class="wbo-about__heading">
+            {{i18n (themePrefix "about_panel.categories_heading")}}
+          </h2>
+          <ul class="wbo-about__categories">
+            {{#each this.categories as |category|}}
+              <li>
+                <a href={{category.url}} class="wbo-about__category">
+                  <span
+                    class="wbo-about__category-swatch"
+                    style={{category.swatchStyle}}
+                  ></span>
+                  <span class="wbo-about__category-text">
+                    <span class="wbo-about__category-name">
+                      {{category.name}}
+                    </span>
+                    {{#if category.description}}
+                      <span class="wbo-about__muted">
+                        {{category.description}}
+                      </span>
+                    {{/if}}
+                  </span>
+                </a>
+              </li>
+            {{/each}}
+          </ul>
+        </section>
+      {{/if}}
     </div>
   </template>
 }

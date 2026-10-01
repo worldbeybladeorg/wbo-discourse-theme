@@ -13,6 +13,12 @@
   justify-content: center;
 }
 
+// The desktop "Create topic" bar; phones get the community header's
+// Create topic button instead (scss/community.scss).
+.custom-post-bar-contents {
+  display: none;
+}
+
 .custom-topic-layout {
   h2 {
     line-height: 1.2;
