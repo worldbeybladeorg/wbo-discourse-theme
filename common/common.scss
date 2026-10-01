@@ -116,9 +116,8 @@ body {
       // of the empty spacer columns and push the edges in by 48px. The
       // spacers keep a minimum of one nav gutter instead.
       grid-template-columns:
-        var(--d-sidebar-width) minmax(var(--wbo-page-gutter), 1fr)
-        minmax(0, 832px) calc(312px + 1.5em)
-        minmax(var(--wbo-page-gutter), 1fr) var(--d-sidebar-width);
+        auto minmax(var(--wbo-page-gutter), 1fr) minmax(0, 832px)
+        calc(312px + 1.5em) minmax(var(--wbo-page-gutter), 1fr) auto;
       grid-template-rows: auto 1fr;
       gap: 0;
 
@@ -128,12 +127,6 @@ body {
 
       .custom-right-sidebar {
         margin-left: 1.5em;
-      }
-
-      @media screen and (width <= 1500px) {
-        grid-template-columns:
-          auto minmax(var(--wbo-page-gutter), 1fr) minmax(0, 832px)
-          calc(312px + 1.5em) minmax(var(--wbo-page-gutter), 1fr) auto;
       }
 
       @media screen and (width <= 1160px) {
@@ -165,6 +158,16 @@ body {
       grid-template-areas:
         "sidebar category-banner category-banner category-banner category-banner category-banner"
         "sidebar lspace content sidebar2 rspace sidebar-spacer";
+
+      // Discourse's left menu is showing: on wide windows reserve the same
+      // width on the right, so the feed stays centred under the nav. (Only
+      // here -- without the menu nothing is reserved on either side.)
+      @media screen and (width > 1500px) {
+        grid-template-columns:
+          var(--d-sidebar-width) minmax(var(--wbo-page-gutter), 1fr)
+          minmax(0, 832px) calc(312px + 1.5em)
+          minmax(var(--wbo-page-gutter), 1fr) var(--d-sidebar-width);
+      }
 
       @media screen and (width <= 1160px) {
         grid-template-areas:
