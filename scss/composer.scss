@@ -87,6 +87,13 @@ html.composer-open .wbo-composer-backdrop {
     border: 1px solid var(--redditish-border-highlight-color);
   }
 
+  // Closed, core collapses the composer to height 0 at the bottom of the
+  // window; the forced border above left a 1-2px line there.
+  &.closed {
+    border: 0 !important;
+    box-shadow: none;
+  }
+
   .grippie {
     background: none;
     margin-top: -1em;
