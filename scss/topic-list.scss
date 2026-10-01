@@ -230,36 +230,53 @@ div.education {
   }
 
   &_image {
+    --wbo-thumb-max-h: 500px;
     position: relative;
     width: 100%;
     margin: 0.25em 0 0.75em;
     overflow: hidden;
     border-radius: var(--wbo-radius);
 
+    // On phones a full-height image let only ~1.5 topics fit on screen.
+    @media screen and (width <= 719px) {
+      --wbo-thumb-max-h: 260px;
+    }
+
+    // The <img> box is exactly the picture: full width, unless that would
+    // make it taller than the cap, in which case it is the cap's height and
+    // centred. (--wbo-thumb-ratio = width / height, set inline by item.gjs.)
+    // Its own opaque background keeps a transparent PNG on the card colour.
     img {
       position: relative;
       display: block;
-      width: 100%;
+      width: min(100%, calc(var(--wbo-thumb-max-h) * var(--wbo-thumb-ratio)));
       height: auto;
-      max-height: 500px;
-      object-fit: contain;
-
-      // On phones a full-height image let only ~1.5 topics fit on screen.
-      @media screen and (width <= 719px) {
-        max-height: 260px;
-      }
+      margin: 0 auto;
+      aspect-ratio: var(--wbo-thumb-ratio);
+      background: var(--secondary);
     }
 
-    // A tall, narrow image is height-capped and centred, leaving empty bands
-    // either side. Fill them with a blurred, faded copy of the same image
-    // (like Reddit). Faded with opacity so it takes on the card colour: dim
-    // on dark, pale on light. Wide images cover it completely.
+    // No ratio available: the old behaviour (letterboxed inside the box).
+    &:not([style]) img {
+      width: 100%;
+      max-height: var(--wbo-thumb-max-h);
+      aspect-ratio: auto;
+      object-fit: contain;
+    }
+
+    // A capped (tall, narrow) picture leaves empty bands either side. Fill
+    // them with a blurred, faded copy of the same image (like Reddit). Faded
+    // with opacity so it takes on the card colour: dim on dark, pale on
+    // light. It sits behind the opaque picture, so it only ever shows in the
+    // bands; a full-width picture covers it completely.
     img.custom-topic-layout_image-bg {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      max-height: none;
+      margin: 0;
+      aspect-ratio: auto;
+      background: none;
       object-fit: cover;
       filter: blur(24px);
       opacity: 0.5;

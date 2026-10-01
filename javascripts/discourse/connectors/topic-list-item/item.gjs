@@ -4,6 +4,7 @@ import { get } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
+import { htmlSafe } from "@ember/template";
 import ShareTopicModal from "discourse/components/modal/share-topic";
 import PluginOutlet from "discourse/components/plugin-outlet";
 import TopicExcerpt from "discourse/components/topic-list/topic-excerpt";
@@ -38,6 +39,17 @@ export default class Item extends Component {
   get youtubeEmbedUrl() {
     return this.youtubeVideoId
       ? `https://www.youtube.com/embed/${this.youtubeVideoId}?autoplay=1&rel=0`
+      : null;
+  }
+
+  // The thumbnail's width / height as a CSS variable, so the stylesheet can
+  // size the <img> box to exactly the picture (scss/topic-list.scss). Null
+  // when the dimensions are missing; the blurred backdrop is skipped then.
+  get imageRatioStyle() {
+    const thumb = this.args.outletArgs.topic.thumbnails?.[0];
+    const ratio = thumb?.width / thumb?.height;
+    return Number.isFinite(ratio) && ratio > 0
+      ? htmlSafe(`--wbo-thumb-ratio: ${ratio.toFixed(4)}`)
       : null;
   }
 
@@ -163,7 +175,7 @@ export default class Item extends Component {
       </div>
 
       {{#if @outletArgs.topic.thumbnails}}
-        <div class="custom-topic-layout_image">
+        <div class="custom-topic-layout_image" style={{this.imageRatioStyle}}>
           {{#if this.isPlayingVideo}}
             <div class="youtube-embed">
               <iframe
@@ -198,14 +210,17 @@ export default class Item extends Component {
               </div>
             </div>
           {{else}}
-            {{! Blurred copy behind the image: fills the sides when a narrow
-                (portrait) image is letterboxed in the card. }}
-            <img
-              class="custom-topic-layout_image-bg"
-              src={{get @outletArgs "topic.thumbnails.0.url"}}
-              alt=""
-              aria-hidden="true"
-            />
+            {{! Blurred copy behind the image: fills the bands either side
+                of a narrow (portrait) image. Never shows through the image
+                itself, which is opaque and sized to the picture. }}
+            {{#if this.imageRatioStyle}}
+              <img
+                class="custom-topic-layout_image-bg"
+                src={{get @outletArgs "topic.thumbnails.0.url"}}
+                alt=""
+                aria-hidden="true"
+              />
+            {{/if}}
             <img
               height={{get @outletArgs "topic.thumbnails.0.height"}}
               width={{get @outletArgs "topic.thumbnails.0.width"}}
