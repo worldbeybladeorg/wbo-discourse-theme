@@ -124,23 +124,28 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 
   // Heading on the left, "X online" on the right of the same row.
+  // The two texts differ in size, so they share a baseline rather than a
+  // centre line.
   &__discord-head {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: 0.75em;
   }
 
+  // The text sets this row's baseline; the dot opts out and centres on it
+  // (as the first item it would otherwise define the baseline itself).
   &__online {
     display: flex;
     flex-shrink: 0;
-    align-items: center;
+    align-items: baseline;
     gap: 0.5em;
     font-weight: 600;
     white-space: nowrap;
   }
 
   &__online-dot {
+    align-self: center;
     width: 10px;
     height: 10px;
     border-radius: 50%;
