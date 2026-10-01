@@ -8,41 +8,37 @@
   // card on the same line. (Was 1.5em, which sat ~12px too low.)
   margin-top: 0.75em;
   grid-area: sidebar2;
-  // When sticky (tall viewports) the `top` governs position, not
-  // margin-top. --header-offset (56px) + 0.75em (12px) = 68px, matching
-  // the left column's first card (grid top 52 + #main-outlet 16px pad).
+  // Sticky at every window height (it used to be only at 900px+, so on a
+  // shorter window it scrolled away with the page). Once stuck, `top`
+  // governs position, not margin-top: --header-offset (56px) + 0.75em
+  // (12px) = 68px, matching the left column's first card.
+  position: sticky;
   top: calc(var(--header-offset) + 0.75em);
   align-self: start;
 
-  @media screen and (height >= 900px) {
-    position: sticky;
-    top: calc(var(--header-offset) + 0.75em);
-    align-self: start;
+  // Taller than the window? Scroll the sidebar on its own (like Reddit's)
+  // instead of cutting off whatever sits below the fold.
+  max-height: calc(100vh - var(--header-offset) - 1.5em);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 
-    // Taller than the window? Scroll the sidebar on its own (like Reddit's)
-    // instead of cutting off whatever sits below the fold.
-    max-height: calc(100vh - var(--header-offset) - 1.5em);
-    overflow-y: auto;
-    overscroll-behavior: contain;
+  // A thin, trackless thumb that only shows while the pointer is over the
+  // sidebar, instead of the grey OS scrollbar.
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s;
 
-    // A thin, trackless thumb that only shows while the pointer is over the
-    // sidebar, instead of the grey OS scrollbar.
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-    transition: scrollbar-color 0.2s;
+  &:hover,
+  &:focus-within {
+    // --wbo-fg-rgb is comma-separated, so it needs the rgba() form.
+    /* stylelint-disable-next-line color-function-alias-notation */
+    scrollbar-color: rgba(var(--wbo-fg-rgb), 0.25) transparent;
+  }
 
-    &:hover,
-    &:focus-within {
-      // --wbo-fg-rgb is comma-separated, so it needs the rgba() form.
-      /* stylelint-disable-next-line color-function-alias-notation */
-      scrollbar-color: rgba(var(--wbo-fg-rgb), 0.25) transparent;
-    }
-
-    // In a scrolling flex column the children would otherwise shrink to fit
-    // (opening a rule squashed the Create topic button).
-    > * {
-      flex-shrink: 0;
-    }
+  // In a scrolling flex column the children would otherwise shrink to fit
+  // (opening a rule squashed the Create topic button).
+  > * {
+    flex-shrink: 0;
   }
 
   &_category-about,
