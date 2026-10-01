@@ -6,18 +6,53 @@ import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 
-// The Discord server widget's online count, shared by every panel instance
-// and refreshed at most every five minutes. The widget endpoint is public
-// and CORS-enabled; it 404s/403s when Server Widget is off in Discord, in
-// which case the count line simply never appears.
-const CACHE_MS = 5 * 60 * 1000;
-let cachedCount = null;
-let cachedAt = 0;
+// The Discord server widget's online count. Discord's widget endpoint is
+// public and CORS-enabled, but it intermittently answers 503 (and 403/404
+// when Server Widget is off). So:
+//   - a good count is reused for five minutes, across page loads too
+//     (localStorage), so we ask Discord far less often;
+//   - when a request fails, the last good count from the past day is shown
+//     instead of dropping the line;
+//   - with no count at all, the line simply doesn't appear.
+const FRESH_MS = 5 * 60 * 1000;
+const STALE_MS = 24 * 60 * 60 * 1000;
+const STORAGE_KEY = "wbo-discord-online";
+let memo = null; // { count, at }
 let inFlight = null;
 
+function readStored() {
+  if (memo) {
+    return memo;
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (Number.isFinite(stored?.count) && Number.isFinite(stored?.at)) {
+      memo = stored;
+    }
+  } catch {
+    // Storage blocked or unparseable: fall through to the network.
+  }
+  return memo;
+}
+
+function store(count) {
+  memo = { count, at: Date.now() };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memo));
+  } catch {
+    // Storage blocked: the in-memory copy still serves this page.
+  }
+}
+
+function lastGood(maxAge) {
+  const stored = readStored();
+  return stored && Date.now() - stored.at < maxAge ? stored.count : null;
+}
+
 async function fetchOnlineCount(serverId) {
-  if (cachedCount !== null && Date.now() - cachedAt < CACHE_MS) {
-    return cachedCount;
+  const fresh = lastGood(FRESH_MS);
+  if (fresh !== null) {
+    return fresh;
   }
   if (!inFlight) {
     inFlight = fetch(
@@ -26,11 +61,13 @@ async function fetchOnlineCount(serverId) {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         const n = data?.presence_count;
-        cachedCount = Number.isFinite(n) ? n : null;
-        cachedAt = Date.now();
-        return cachedCount;
+        if (Number.isFinite(n)) {
+          store(n);
+          return n;
+        }
+        return lastGood(STALE_MS);
       })
-      .catch(() => null)
+      .catch(() => lastGood(STALE_MS))
       .finally(() => {
         inFlight = null;
       });
