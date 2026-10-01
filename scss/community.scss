@@ -60,12 +60,16 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
-#main-outlet
-  .wbo-community-header
-  .wbo-community-header__actions
-  .wbo-btn-discord
-  .d-icon {
+// The Discord logo on both Discord buttons (mobile header, About panel).
+#main-outlet-wrapper .wbo-btn-discord .d-icon {
   color: var(--wbo-btn-icon-discord);
+}
+
+#main-outlet-wrapper .wbo-about .wbo-btn-discord .d-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 
 // Links styled as .btn don't get core's pill radius; match the buttons.

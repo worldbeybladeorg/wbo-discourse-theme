@@ -28,7 +28,7 @@ about_footnote:
 
 discord_invite_url:
   default: "https://discord.gg/92vf8usw"
-  description: "Discord invite link for the right sidebar's Join button and the mobile header's Discord button. Use a permanent (never-expiring) invite. Leave blank to hide both."
+  description: "Discord invite link for the About panel's Join button and the mobile header's Discord button. Use a permanent (never-expiring) invite. Leave blank to hide both."
 
 discord_server_id:
   default: "620289759171969096"
@@ -36,11 +36,7 @@ discord_server_id:
 
 discord_heading:
   default: "Chat live with other bladers"
-  description: "Right sidebar: heading of the Discord box."
-
-discord_description:
-  default: "Trades, combos and event meetups on Discord."
-  description: "Right sidebar: line under the Discord heading."
+  description: "About panel (right sidebar and mobile About tab): heading of the Discord box."
 
 rules:
   type: objects

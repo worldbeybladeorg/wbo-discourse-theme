@@ -2,6 +2,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { service } from "@ember/service";
 import { htmlSafe } from "@ember/template";
+import icon from "discourse/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 
@@ -37,10 +38,10 @@ async function fetchOnlineCount(serverId) {
   return inFlight;
 }
 
-// The community "About" content. Right sidebar on wide screens:
-// description, Discord box, rules. About tab on narrow ones (@mobile):
-// description, rules and the category list -- no Discord box, since the
-// header's Discord button sits right above. Copy comes from theme settings.
+// The community "About" content: description, Discord box (with the live
+// online count), rules. Right sidebar on wide screens; the About tab on
+// narrow ones (@mobile), which also lists the categories. Copy comes from
+// theme settings.
 export default class WboAboutPanel extends Component {
   @service site;
 
@@ -49,7 +50,7 @@ export default class WboAboutPanel extends Component {
   constructor() {
     super(...arguments);
     const serverId = (settings.discord_server_id || "").trim();
-    if (serverId && !this.args.mobile) {
+    if (serverId) {
       fetchOnlineCount(serverId).then((n) => {
         if (!this.isDestroying && !this.isDestroyed) {
           this.onlineCount = n;
@@ -59,7 +60,7 @@ export default class WboAboutPanel extends Component {
   }
 
   get discordUrl() {
-    return this.args.mobile ? "" : (settings.discord_invite_url || "").trim();
+    return (settings.discord_invite_url || "").trim();
   }
 
   // Top-level categories the viewer can see (site.categories already omits
@@ -111,9 +112,6 @@ export default class WboAboutPanel extends Component {
             <h3
               class="wbo-about__discord-title"
             >{{settings.discord_heading}}</h3>
-            {{#if settings.discord_description}}
-              <p class="wbo-about__muted">{{settings.discord_description}}</p>
-            {{/if}}
           </div>
           {{#if this.onlineLabel}}
             <p class="wbo-about__online">
@@ -127,7 +125,7 @@ export default class WboAboutPanel extends Component {
             target="_blank"
             rel="noopener noreferrer"
           >
-            {{wboIcon "chat" 18}}
+            {{icon "fab-discord"}}
             <span>{{i18n (themePrefix "about_panel.join_discord")}}</span>
           </a>
         </section>
