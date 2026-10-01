@@ -110,8 +110,8 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     display: flex;
     align-items: center;
     gap: 0.75em;
-    min-height: 52px;
-    padding: 3px 3px 3px 14px;
+    min-height: 44px;
+    padding: 3px 3px 3px 12px;
     box-sizing: border-box;
     border: 1px solid color-mix(in srgb, #5865f2 50%, transparent);
     border-radius: 100px;
@@ -136,14 +136,13 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     flex: 1 1 auto;
     flex-direction: row;
     align-items: center;
-    gap: 0.6em;
+    gap: 0.5em;
     min-width: 0;
 
     // Set on the span, not just the link: a:visited out-specifies a
     // single class and turned the count link-blue.
     color: var(--wbo-text);
-    font-size: var(--font-up-1);
-    font-weight: 600;
+    font-weight: 500;
     text-align: start;
   }
 
@@ -164,11 +163,11 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     align-items: center;
     align-self: stretch;
     gap: 0.45em;
-    padding: 0 1.4em;
+    padding: 0 1.2em;
     border-radius: 100px;
     background: #4752c4;
     color: #fff;
-    font-weight: 700;
+    font-weight: 600;
     white-space: nowrap;
 
     .d-icon {
