@@ -260,7 +260,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     margin-bottom: 1em;
 
     @include custom-card {
-      padding: 12px 16px;
+      padding: 12px 16px 0;
     }
   }
 
@@ -278,31 +278,47 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     }
   }
 
+  // The tab strip sits on the header's bottom border, as WordPress's
+  // .browse-view-tabs sit on their strip's: top:1px lays the active tab's
+  // 2px orange marker over that hairline. The header drops its bottom
+  // padding for this (see the phone/tablet rules below).
   &__bar {
+    position: relative;
+    top: 1px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 0.5em;
   }
 
+  // Pulled left by one tab's padding so "Feed" lines up with the buttons.
   &__tabs {
     display: flex;
+    margin-left: -16px;
     gap: 0.25em;
   }
 
+  // WordPress's .browse-view-tab (style.css) at the profile tabs' size
+  // (profile.css: 16px, 110% width): muted 600 text, 2px orange underline
+  // on the active tab.
   &__tab {
-    height: 40px;
-    padding: 0 12px;
+    padding: 8px 16px;
     border: 0;
-    border-radius: 100px;
-    background: transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
     color: var(--wbo-muted);
-    font: inherit;
+    font-family: inherit;
+    font-size: 16px;
     font-weight: 600;
+    font-stretch: 110%;
     cursor: pointer;
+    transition:
+      color var(--wbo-transition),
+      border-color var(--wbo-transition);
 
     &[aria-selected="true"] {
-      background: rgb(var(--wbo-fg-rgb), 0.08);
+      border-bottom-color: var(--wbo-orange);
       color: var(--wbo-text);
     }
 
@@ -321,23 +337,23 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 
   // Same type and box as the Feed/About tabs.
+  // Same type as the tabs, without the underline.
   &__sort-trigger {
     display: inline-flex;
     align-items: center;
     gap: 0.3em;
-    height: 40px;
-    padding: 0 12px;
+    padding: 8px 0 10px 16px;
     border: 0;
-    border-radius: 100px;
-    background: transparent;
+    background: none;
     color: var(--wbo-muted);
-    font: inherit;
+    font-family: inherit;
+    font-size: 16px;
     font-weight: 600;
+    font-stretch: 110%;
     cursor: pointer;
 
     &[aria-expanded="true"],
     .discourse-no-touch &:hover {
-      background: rgb(var(--wbo-fg-rgb), 0.08);
       color: var(--wbo-text);
     }
 
@@ -405,7 +421,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 @media screen and (width <= $wbo-phone-bp) {
   #main-outlet .wbo-community-header {
     margin: -16px calc(-1 * var(--d-wrap-padding-x)) 1em;
-    padding: 12px 16px 8px;
+    padding: 12px 16px 0;
     border-width: 0 0 1px;
     border-radius: 0;
   }
