@@ -21,9 +21,8 @@ const NAV_HEIGHT = 56;
 // Narrow-screen header for the top-level feeds, Reddit style:
 //   [Create topic] [Discord]
 //   Feed | About                       Latest ▾
-// Only renders where the right sidebar is hidden (CSS, <= 1160px); the
-// Create/Discord row and the sort menu only on phones (<= 719px), where the
-// desktop "Create topic" bar and Discourse's navigation bar are hidden.
+// Only shows where the right sidebar is hidden (CSS, <= 1160px), where it
+// replaces Discourse's navigation bar: phones and tablets alike.
 // The About tab shows the same panel the right sidebar shows on desktop.
 export default class WboCommunityHeader extends Component {
   @service router;

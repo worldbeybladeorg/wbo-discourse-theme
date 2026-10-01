@@ -283,20 +283,15 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 .wbo-community-header {
   display: none;
 
+  // Below sidebar width: buttons, then the Feed/About tabs and sort menu on
+  // a hairline strip (no card -- the same open strip as the desktop tabs).
+  // Phones turn it into a full-bleed band, further down.
   @media screen and (width <= $wbo-rail-hidden-bp) {
     display: flex;
     flex-direction: column;
     gap: 0.75em;
     margin-bottom: 1em;
-
-    @include custom-card {
-      padding: 12px 16px 0;
-    }
-  }
-
-  // The desktop "Create topic" bar sits directly above on tablets.
-  .custom-post-bar-contents + & {
-    margin-top: 1em;
+    border-bottom: 1px solid var(--redditish-border-color);
   }
 
   // Create topic + Discord wherever the right sidebar (and its Create topic
@@ -319,11 +314,16 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     gap: 0.5em;
   }
 
-  // Pulled left by one tab's padding so "Feed" lines up with the buttons.
+  // On phones, pulled left by one tab's padding so "Feed" lines up with the
+  // buttons inside the band. On tablets the strip is open, so the active
+  // underline starts at the column edge, like the desktop tabs.
   &__tabs {
     display: flex;
-    margin-left: -16px;
     gap: 0.25em;
+
+    @media screen and (width <= $wbo-phone-bp) {
+      margin-left: -16px;
+    }
   }
 
   // WordPress's .browse-view-tab (style.css) at the profile tabs' size
@@ -356,12 +356,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 
   &__sort {
-    display: none;
-
-    @media screen and (width <= $wbo-phone-bp) {
-      position: relative;
-      display: block;
-    }
+    position: relative;
   }
 
   // Same type and box as the Feed/About tabs.
@@ -450,8 +445,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   #main-outlet .wbo-community-header {
     margin: -16px calc(-1 * var(--d-wrap-padding-x)) 1em;
     padding: 12px 16px 0;
-    border-width: 0 0 1px;
-    border-radius: 0;
+    background: var(--secondary);
   }
 }
 
@@ -464,6 +458,17 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
       display: none !important;
     }
   }
+
+  // The header's Feed/About tabs and sort menu replace Discourse's
+  // navigation bar on the feeds it covers -- at every width below the
+  // sidebar, so tablets don't get two rows of tabs.
+  .list-controls:has(.wbo-community-header) #navigation-bar {
+    display: none;
+  }
+
+  .list-controls:has(.wbo-community-header) {
+    gap: 0;
+  }
 }
 
 @media screen and (width <= $wbo-phone-bp) {
@@ -473,16 +478,8 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     display: none;
   }
 
-  // The header's sort menu replaces Discourse's navigation bar, and its
-  // Create topic button replaces the floating one, on the feeds it covers.
-  .list-controls:has(.wbo-community-header) #navigation-bar {
-    display: none;
-  }
-
-  .list-controls:has(.wbo-community-header) {
-    gap: 0;
-  }
-
+  // The header's Create topic button replaces the floating one on the feeds
+  // it covers...
   // ...until it scrolls out of view: then the floating one comes back
   // (wbo-community-header.gjs toggles the body class).
   // Shown: pops in with a slight overshoot. The transition on each state is
