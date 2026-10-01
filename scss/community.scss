@@ -162,21 +162,28 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     }
   }
 
+  // Vertical padding (not just a min-height) so a title that wraps onto two
+  // lines keeps clear of the dividers above and below it.
   &__rule {
     display: flex;
     align-items: center;
     gap: 0.75em;
+    box-sizing: border-box;
     min-height: 44px;
+    padding-block: 10px;
 
     &:is(details) {
       display: block;
+      padding-block: 0;
     }
 
     summary {
       display: flex;
       align-items: center;
       gap: 0.75em;
+      box-sizing: border-box;
       min-height: 44px;
+      padding-block: 10px;
       cursor: pointer;
       list-style: none;
 
@@ -186,7 +193,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     }
 
     > .wbo-about__muted {
-      margin: 0 0 0.75em;
+      margin: -2px 0 12px;
     }
   }
 
