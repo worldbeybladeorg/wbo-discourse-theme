@@ -397,3 +397,57 @@ div.education {
     margin-left: 0;
   }
 }
+
+// ── "See N new or updated topics" ───────────────────────────────────────────
+// Core floats this over the top of the list (absolute), which in the card
+// layout landed on the first card's category line. Here it takes its own row
+// above the first card, as a pill on the tonal button engine (blue accent),
+// and sticks under the nav while scrolling so it's reachable further down.
+// #list-area in the selector matches core's own (ID-carrying) rules.
+#main-outlet #list-area .show-more.has-topics {
+  position: sticky;
+  top: calc(var(--header-offset) + 12px);
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: auto;
+  margin: 0 0 16px;
+  transform: none;
+  animation: none;
+  pointer-events: none; // only the pill itself takes taps
+
+  .alert.alert-info.clickable {
+    position: relative;
+    inset: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 20px;
+    border: 2px solid var(--wbo-blue);
+    border-radius: 100px;
+
+    // Opaque (mixed into the card surface, not transparent) because it
+    // floats over cards once stuck.
+    background: color-mix(
+      in srgb,
+      var(--wbo-blue) var(--wbo-btn-fill-rest),
+      var(--wbo-surface)
+    );
+    box-shadow: 0 4px 14px var(--wbo-shadow-color);
+    color: var(--wbo-btn-ink-secondary);
+    font-size: var(--font-0);
+    font-weight: 600;
+    font-stretch: 110%;
+    text-shadow: var(--wbo-btn-text-shadow);
+    pointer-events: auto;
+
+    &::before {
+      content: "↑";
+    }
+  }
+}
