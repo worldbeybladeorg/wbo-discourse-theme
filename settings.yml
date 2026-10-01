@@ -20,15 +20,15 @@ about_text:
   type: string
   textarea: true
   default: "World Beyblade Organization is a non-profit project to connect the Beyblade community and support independent, fan-run Beyblade events."
-  description: "About panel: the description at the top (right sidebar on desktop, About tab on mobile)."
+  description: "Right sidebar (top-level feeds): the community description."
 
 about_footnote:
   default: "Run by Fighting Spirits Inc., a registered nonprofit."
-  description: "About panel: the small line under the description. Leave blank to hide."
+  description: "Right sidebar: the small line under the description. Leave blank to hide."
 
 discord_invite_url:
   default: "https://discord.gg/92vf8usw"
-  description: "Discord invite link used by the About panel's Join button and the mobile header's Discord button. Use a permanent (never-expiring) invite. Leave blank to hide both."
+  description: "Discord invite link for the right sidebar's Join button and the Discord strip shown on narrow screens. Use a permanent (never-expiring) invite. Leave blank to hide both."
 
 discord_server_id:
   default: "620289759171969096"
@@ -36,39 +36,8 @@ discord_server_id:
 
 discord_heading:
   default: "Chat live with other bladers"
-  description: "About panel: heading of the Discord box."
+  description: "Right sidebar: heading of the Discord box."
 
 discord_description:
   default: "Trades, combos and event meetups on Discord."
-  description: "About panel: line under the Discord heading."
-
-rules:
-  type: objects
-  default:
-    - title: "Be kind to other bladers"
-      detail: ""
-    - title: "Post in the right category"
-      detail: ""
-    - title: "No spam or unapproved self-promotion"
-      detail: ""
-  schema:
-    name: rule
-    properties:
-      title:
-        type: string
-        required: true
-      detail:
-        type: string
-  description: "About panel: the short forum rules list. The full rules live on the guidelines page (rules_url); update both when the rules change."
-
-rules_url:
-  default: "/guidelines"
-  description: "About panel: where \"Read all rules\" goes."
-
-support_url:
-  default: "https://worldbeyblade.org/support/"
-  description: "About panel: where \"Open a support ticket\" goes. Leave blank to hide the help section."
-
-support_text:
-  default: "Questions about your account, an event, or another member? Our staff answer through support tickets."
-  description: "About panel: the line above the support button."
+  description: "Right sidebar: line under the Discord heading."

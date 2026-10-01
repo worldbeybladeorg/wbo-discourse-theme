@@ -13,8 +13,8 @@
   justify-content: center;
 }
 
-// The desktop "Create topic" bar; phones get the community header's
-// Create topic button instead (scss/community.scss).
+// The desktop "Create topic" bar -- phones use the floating create button.
+// Only the bar: the Discord strip shares this outlet (scss/community.scss).
 .custom-post-bar-contents {
   display: none;
 }

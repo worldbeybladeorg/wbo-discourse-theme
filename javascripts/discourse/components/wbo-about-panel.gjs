@@ -12,7 +12,7 @@ let cachedCount = null;
 let cachedAt = 0;
 let inFlight = null;
 
-async function fetchOnlineCount(serverId) {
+export async function fetchOnlineCount(serverId) {
   if (cachedCount !== null && Date.now() - cachedAt < CACHE_MS) {
     return cachedCount;
   }
@@ -35,9 +35,9 @@ async function fetchOnlineCount(serverId) {
   return inFlight;
 }
 
-// The community "About" content: right sidebar on wide screens, the About
-// tab on narrow ones (see wbo-community-header). Everything it says comes
-// from theme settings, so it's edited in admin, not here.
+// The right sidebar on the top-level feeds: a short description and the
+// Discord box. Narrow screens, where the sidebar is hidden, get the slim
+// wbo-discord-strip instead. Copy comes from theme settings.
 export default class WboAboutPanel extends Component {
   @tracked onlineCount = null;
 
@@ -64,16 +64,6 @@ export default class WboAboutPanel extends Component {
     return i18n(themePrefix("about_panel.online_now"), {
       count: this.onlineCount.toLocaleString(),
     });
-  }
-
-  get rules() {
-    return (settings.rules || [])
-      .filter((r) => r?.title)
-      .map((r, i) => ({ ...r, number: i + 1, open: i === 0 }));
-  }
-
-  get supportUrl() {
-    return (settings.support_url || "").trim();
   }
 
   <template>
@@ -116,55 +106,6 @@ export default class WboAboutPanel extends Component {
         </section>
       {{/if}}
 
-      {{#if this.rules.length}}
-        <section class="wbo-about__card">
-          <h2 class="wbo-about__heading">
-            {{i18n (themePrefix "about_panel.rules_heading")}}
-          </h2>
-          <ol class="wbo-about__rules">
-            {{#each this.rules as |rule|}}
-              <li>
-                {{#if rule.detail}}
-                  <details class="wbo-about__rule" open={{rule.open}}>
-                    <summary>
-                      <span class="wbo-about__rule-num">{{rule.number}}</span>
-                      <span class="wbo-about__rule-title">{{rule.title}}</span>
-                      {{wboIcon "caret-down" 16 "wbo-about__rule-caret"}}
-                    </summary>
-                    <p class="wbo-about__muted">{{rule.detail}}</p>
-                  </details>
-                {{else}}
-                  <div class="wbo-about__rule">
-                    <span class="wbo-about__rule-num">{{rule.number}}</span>
-                    <span class="wbo-about__rule-title">{{rule.title}}</span>
-                  </div>
-                {{/if}}
-              </li>
-            {{/each}}
-          </ol>
-          {{#if settings.rules_url}}
-            <a href={{settings.rules_url}} class="wbo-about__link">
-              {{i18n (themePrefix "about_panel.read_all_rules")}}
-              {{wboIcon "arrow-right" 14}}
-            </a>
-          {{/if}}
-        </section>
-      {{/if}}
-
-      {{#if this.supportUrl}}
-        <section class="wbo-about__card">
-          <h2 class="wbo-about__heading">
-            {{i18n (themePrefix "about_panel.help_heading")}}
-          </h2>
-          {{#if settings.support_text}}
-            <p class="wbo-about__muted">{{settings.support_text}}</p>
-          {{/if}}
-          <a href={{this.supportUrl}} class="btn btn-default wbo-about__button">
-            <span>{{i18n (themePrefix "about_panel.open_ticket")}}</span>
-            {{wboIcon "arrow-right" 16}}
-          </a>
-        </section>
-      {{/if}}
     </div>
   </template>
 }

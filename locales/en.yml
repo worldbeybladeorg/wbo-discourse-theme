@@ -16,16 +16,8 @@ en:
   posted_by: "Posted by"
   about_panel:
     about_heading: "About the community"
-    rules_heading: "Forum rules"
-    read_all_rules: "Read all rules"
-    help_heading: "Need help?"
-    open_ticket: "Open a support ticket"
     join_discord: "Join our Discord"
     online_now: "%{count} online now"
-  community_header:
-    create_topic: "Create topic"
-    discord: "Discord"
-    sections: "Community sections"
-    feed: "Feed"
-    about: "About"
-    sort: "Sort topics"
+  discord_strip:
+    title: "Chat live on the WBO Discord"
+    join: "Join"
