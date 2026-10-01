@@ -518,3 +518,48 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     font-size: var(--font-down-1);
   }
 }
+
+// Desktop feed filters (Discourse's #navigation-bar: Latest, Unread, Hot…)
+// as WordPress-style underline tabs, matching the phone Feed/About tabs:
+// muted 600 text at 16px / 110% width, a 2px orange underline on the active
+// one, sitting on the card's bottom hairline (top: 1px lays the marker over
+// it). Phones keep their own header, so this stops at the phone breakpoint.
+@media screen and (width > $wbo-phone-bp) {
+  #navigation-bar.nav-pills {
+    gap: 4px;
+    padding-bottom: 0;
+    padding-left: 0;
+
+    > li {
+      position: relative;
+      top: 1px;
+      margin: 0;
+    }
+
+    > li > a {
+      height: auto;
+      padding: 8px 16px;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      background: none;
+      color: var(--wbo-muted);
+      font-size: 16px;
+      font-weight: 600;
+      font-stretch: 110%;
+      transition:
+        color var(--wbo-transition),
+        border-color var(--wbo-transition);
+
+      &:not(.active):hover {
+        background: none;
+        color: var(--wbo-text);
+      }
+
+      &.active {
+        border-bottom-color: var(--wbo-orange);
+        background: none;
+        color: var(--wbo-text);
+      }
+    }
+  }
+}
