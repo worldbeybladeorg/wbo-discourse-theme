@@ -388,3 +388,30 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   border-radius: 100px;
   background: var(--wbo-bg);
 }
+
+// Drafts link beside the fake field (fake-input-create.gjs): a pill with
+// the draft count, matching the field.
+.custom-post-bar-contents .wbo-drafts-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.35em;
+  height: 44px;
+  margin-left: 0.5em;
+  padding: 0 0.9em;
+  border: 1px solid var(--redditish-border-color);
+  border-radius: 100px;
+  color: var(--wbo-label);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--redditish-border-highlight-color);
+    color: var(--wbo-text);
+  }
+
+  &__count {
+    font-size: var(--font-down-1);
+  }
+}
