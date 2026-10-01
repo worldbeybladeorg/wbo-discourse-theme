@@ -65,9 +65,13 @@ $wbo-nav-mobile-breakpoint: 719px; // WordPress: pill/Log-in changes below 720
     display: none !important;
   }
 
-  .sidebar-hamburger-dropdown,
-  .hamburger-panel {
-    display: none !important;
+  // Except on admin pages, where that panel is the admin menu: the WBO
+  // drawer's "Admin menu" button opens it (wbo-site-nav.gjs).
+  body:not(.wbo-admin-route) {
+    .sidebar-hamburger-dropdown,
+    .hamburger-panel {
+      display: none !important;
+    }
   }
 }
 
@@ -514,6 +518,14 @@ $wbo-nav-mobile-breakpoint: 719px; // WordPress: pill/Log-in changes below 720
 
   &__admin,
   &__logout {
+    // __admin is a <button> on admin pages: reset the browser's box.
+    box-sizing: border-box;
+    width: 100%;
+    background: none;
+    border-width: 1px 0 0;
+    border-style: solid;
+    font-family: inherit;
+    cursor: pointer;
     display: flex;
     align-items: center;
     height: 48px;

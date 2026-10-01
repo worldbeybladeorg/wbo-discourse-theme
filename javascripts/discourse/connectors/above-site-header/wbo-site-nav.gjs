@@ -4,6 +4,7 @@ import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { on } from "@ember/modifier";
 import { concat } from "@ember/helper";
+import bodyClass from "discourse/helpers/body-class";
 import icon from "discourse/helpers/d-icon";
 import { getOwner } from "@ember/application";
 import Composer from "discourse/models/composer";
@@ -39,6 +40,7 @@ export default class WboSiteNav extends Component {
   @service siteSettings;
   @service composer;
   @service topicTrackingState;
+  @service header;
 
   @tracked isDrawerOpen = false;
   @tracked isUserDropdownOpen = false;
@@ -272,6 +274,21 @@ export default class WboSiteNav extends Component {
   @action
   closeDrawer() {
     this.isDrawerOpen = false;
+  }
+
+  // On admin pages, Discourse's own sidebar holds the admin menu (Settings,
+  // Users, Plugins…). The WBO drawer replaces that sidebar's toggle on
+  // mobile, so it offers a way back in: close the WBO drawer and open
+  // Discourse's (wbo-site-nav.scss unlocks it on admin routes only).
+  get isAdminRoute() {
+    const route = this.router.currentRouteName || "";
+    return route === "admin" || route.startsWith("admin");
+  }
+
+  @action
+  openAdminMenu() {
+    this.isDrawerOpen = false;
+    this.header.hamburgerVisible = true;
   }
 
   // Discourse's outside-close listens on the document at mousedown /
@@ -592,14 +609,26 @@ export default class WboSiteNav extends Component {
         {{/each}}
       </nav>
 
-      {{#if this.currentUser.admin}}
-        {{! Admin isn't in Discourse's mobile user menu; give staff a
-            reachable link now that the second toggle is gone. }}
-        <a
-          href="/admin"
-          class="wbo-nav-drawer__admin"
-          {{on "click" this.closeDrawer}}
-        >Admin</a>
+      {{#if this.isAdminRoute}}
+        {{bodyClass "wbo-admin-route"}}
+      {{/if}}
+
+      {{#if this.currentUser.staff}}
+        {{#if this.isAdminRoute}}
+          <button
+            type="button"
+            class="wbo-nav-drawer__admin"
+            {{on "click" this.openAdminMenu}}
+          >Admin menu</button>
+        {{else if this.currentUser.admin}}
+          {{! Admin isn't in Discourse's mobile user menu; give staff a
+              reachable link now that the second toggle is gone. }}
+          <a
+            href="/admin"
+            class="wbo-nav-drawer__admin"
+            {{on "click" this.closeDrawer}}
+          >Admin</a>
+        {{/if}}
       {{/if}}
 
       {{#if this.currentUser}}
