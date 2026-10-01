@@ -455,13 +455,39 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
   // ...until it scrolls out of view: then the floating one comes back
   // (wbo-community-header.gjs toggles the body class).
-  body:has(.wbo-community-header .btn-primary):not(.wbo-header-create-offscreen)
-    .wbo-bottom-bar__create {
-    display: none;
+  // Shown: pops in with a slight overshoot. The transition on each state is
+  // the one used when entering it, so enter and exit can differ.
+  body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create {
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      visibility 0s,
+      background 0.15s,
+      box-shadow 0.15s;
   }
 
-  body.wbo-header-create-offscreen .wbo-bottom-bar__create {
-    animation: wbo-fade-in 0.2s ease; // defined in wbo-site-nav.scss
+  // Hidden: shrinks and fades out quickly, then turns invisible so it can't
+  // be tapped or focused.
+  body:has(.wbo-community-header .btn-primary):not(.wbo-header-create-offscreen)
+    .wbo-bottom-bar__create {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+    visibility: hidden;
+    transition:
+      opacity 0.15s ease-in,
+      transform 0.15s ease-in,
+      visibility 0s 0.15s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create,
+    body:has(.wbo-community-header .btn-primary):not(
+        .wbo-header-create-offscreen
+      )
+      .wbo-bottom-bar__create {
+      transform: none;
+      transition-duration: 0.01s;
+    }
   }
 }
 
