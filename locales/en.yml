@@ -27,9 +27,20 @@ en:
     create_topic: "New topic"
     discord: "Discord"
     sections: "Community sections"
-    feed: "Topics"
     about: "About"
     sort: "Sort topics"
+  category_list:
+    topics:
+      one: "%{count} topic"
+      other: "%{count} topics"
+    posts:
+      one: "%{count} post"
+      other: "%{count} posts"
+    no_topics: "No topics yet"
+    unread: "%{count} unread"
+    new: "%{count} new"
+    new_category: "New category"
+    reorder: "Reorder"
   thread:
     reply_placeholder: "Add a reply…"
     log_in_to_reply: "Log in to reply"

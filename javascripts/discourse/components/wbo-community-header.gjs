@@ -4,13 +4,11 @@ import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action, get } from "@ember/object";
 import { service } from "@ember/service";
-import { htmlSafe } from "@ember/template";
 import { modifier } from "ember-modifier";
 import CategoryNotificationsTracking from "discourse/components/category-notifications-tracking";
 import DButton from "discourse/components/d-button";
 import NotificationsTracking from "discourse/components/notifications-tracking";
 import icon from "discourse/helpers/d-icon";
-import replaceEmoji from "discourse/helpers/replace-emoji";
 import getURL from "discourse/lib/get-url";
 import { NotificationLevels } from "discourse/lib/notification-levels";
 import DiscourseURL from "discourse/lib/url";
@@ -22,6 +20,7 @@ import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 import AddToSidebar from "./add-to-sidebar";
 import WboAboutPanel from "./wbo-about-panel";
+import WboCategoryMark from "./wbo-category-mark";
 
 const ABOUT_CLASS = "wbo-about-tab-open";
 const CREATE_OFFSCREEN_CLASS = "wbo-header-create-offscreen";
@@ -31,7 +30,12 @@ const NAV_HEIGHT = 56;
 
 // Narrow-screen header for the top-level feeds, Reddit style:
 //   [New topic] [Discord]
-//   Topics | About                      Latest ▾
+//   Latest ▾ | Categories | About
+// The first tab is the topic list, named by its current sort. While it is the
+// active tab, tapping it opens the sort menu; from another tab, tapping its
+// label goes back to the list and tapping its caret opens the sort menu to go
+// straight to a sort. (So nothing says "Topics" while the categories page is
+// showing, and there is no separate sort control to fit on the line.)
 // Only shows where the right sidebar is hidden (CSS, <= 1160px), where it
 // replaces Discourse's navigation bar: phones and tablets alike.
 // The About tab shows the same panel the right sidebar shows on desktop.
@@ -40,7 +44,7 @@ const NAV_HEIGHT = 56;
 // tag, under a title row that names it (in place of the old colour banner):
 //   ■ Beyblade General                         [settings]
 //   [New topic] [Watching]
-//   Topics | About                      Latest ▾
+//   Latest ▾ | About
 // The title row shows at every width. Above 1160px it is all that shows, and
 // it carries the Watching control and the sidebar star (New topic is at the
 // top of the right sidebar there, and the filters are Discourse's own tabs).
@@ -144,6 +148,29 @@ export default class WboCommunityHeader extends Component {
     return this.topMenu.includes(this.router.currentRoute?.localName);
   }
 
+  // The /categories page: its own tab on the top-level pages.
+  get isCategoriesPage() {
+    return (
+      !this.isScoped && this.router.currentRoute?.localName === "categories"
+    );
+  }
+
+  get showCategoriesTab() {
+    return !this.isScoped && this.topMenu.includes("categories");
+  }
+
+  get categoriesHref() {
+    return getURL("/categories");
+  }
+
+  get categoriesActive() {
+    return this.isCategoriesPage && !this.isAbout;
+  }
+
+  get topicsActive() {
+    return !this.isCategoriesPage && !this.isAbout;
+  }
+
   get show() {
     return this.isScoped || this.isTopRoute;
   }
@@ -168,30 +195,6 @@ export default class WboCommunityHeader extends Component {
       this.currentUser?.canEditTags &&
       !this.isTagIntersection &&
       this.pageTag.name !== "none"
-    );
-  }
-
-  // The category's own mark, as in the sidebar: its icon or emoji if it has
-  // one, otherwise a square of its colour.
-  get categoryIcon() {
-    return this.category.style_type === "icon" ? this.category.icon : null;
-  }
-
-  get categoryEmoji() {
-    return this.category.style_type === "emoji" ? this.category.emoji : null;
-  }
-
-  get categoryEmojiCode() {
-    return `:${this.categoryEmoji}:`;
-  }
-
-  get categoryColorStyle() {
-    const color = this.category.color;
-    if (!/^[0-9a-f]{3,8}$/i.test(color || "")) {
-      return null;
-    }
-    return htmlSafe(
-      this.categoryIcon ? `color: #${color}` : `background-color: #${color}`
     );
   }
 
@@ -231,14 +234,12 @@ export default class WboCommunityHeader extends Component {
     const category = this.category;
     const tag = scoped ? this.tag : null;
     const noSubcategories = !!this.routeAttributes?.noSubcategories;
-    // Within a category or tag the counts and links are its own, and
-    // "Categories" (a site-wide page) drops out.
+    // Within a category or tag the counts and links are its own.
+    // "Categories" is a page, not a sort: it has its own tab.
     const scope = scoped
       ? { categoryId: category?.id, tagId: tag?.id, noSubcategories }
       : {};
-    const names = scoped
-      ? this.topMenu.filter((name) => name !== "categories")
-      : this.topMenu;
+    const names = this.topMenu.filter((name) => name !== "categories");
 
     return names.map((name) => {
       let label = i18n(`filters.${name}.title`);
@@ -262,14 +263,47 @@ export default class WboCommunityHeader extends Component {
     });
   }
 
+  // The sort the first tab stands for: the one showing, or (on the categories
+  // page, where no topic list is) the first, which is the default list.
+  get currentSort() {
+    const options = this.sortOptions;
+    return options.find((o) => o.selected) || options[0];
+  }
+
   get currentSortLabel() {
-    return this.sortOptions.find((o) => o.selected)?.label;
+    return this.currentSort?.label;
   }
 
   @action
   setTab(tab) {
     this.tab = tab;
     document.body.classList.toggle(ABOUT_CLASS, tab === "about");
+  }
+
+  // The first tab. Active: opens the sort menu. Otherwise: back to the topic
+  // list -- already on this page behind the About panel, or a page away from
+  // the categories page.
+  @action
+  onTopicsTab() {
+    if (this.topicsActive) {
+      this.toggleSort();
+      return;
+    }
+    this.closeSort();
+    if (this.isCategoriesPage) {
+      DiscourseURL.routeTo(this.currentSort.href);
+    } else {
+      this.setTab("feed");
+    }
+  }
+
+  // A sort was picked, or the Categories tab tapped: the link navigates; if
+  // it leads to the page already showing, bring its list back from behind
+  // the About panel.
+  @action
+  showList() {
+    this.closeSort();
+    this.setTab("feed");
   }
 
   // Custom sort menu (not a native <select>, so it matches the header's type
@@ -363,21 +397,7 @@ export default class WboCommunityHeader extends Component {
       >
         {{#if this.category}}
           <div class="wbo-community-header__title">
-            {{#if this.categoryIcon}}
-              <span
-                class="wbo-community-header__mark"
-                style={{this.categoryColorStyle}}
-              >{{icon this.categoryIcon}}</span>
-            {{else if this.categoryEmoji}}
-              <span class="wbo-community-header__mark">{{replaceEmoji
-                  this.categoryEmojiCode
-                }}</span>
-            {{else}}
-              <span
-                class="wbo-community-header__swatch"
-                style={{this.categoryColorStyle}}
-              ></span>
-            {{/if}}
+            <WboCategoryMark @category={{this.category}} />
             <h1 class="wbo-community-header__name">{{this.category.name}}</h1>
             {{#if this.currentUser}}
               <span class="wbo-community-header__rail-only">
@@ -482,24 +502,21 @@ export default class WboCommunityHeader extends Component {
             role="tablist"
             aria-label={{i18n (themePrefix "community_header.sections")}}
           >
-            <button
-              type="button"
-              role="tab"
-              class="wbo-community-header__tab"
-              aria-selected={{if this.isAbout "false" "true"}}
-              {{on "click" (fn this.setTab "feed")}}
-            >{{i18n (themePrefix "community_header.feed")}}</button>
-            <button
-              type="button"
-              role="tab"
-              class="wbo-community-header__tab"
-              aria-selected={{if this.isAbout "true" "false"}}
-              {{on "click" (fn this.setTab "about")}}
-            >{{i18n (themePrefix "community_header.about")}}</button>
-          </div>
-
-          {{#unless this.isAbout}}
-            <div class="wbo-community-header__sort">
+            {{! The label and its caret read as one tab, so they share a
+                wrapper (presentational: the tab still belongs to the list). }}
+            <div
+              class="wbo-community-header__sort
+                {{if this.topicsActive 'is-active'}}"
+              role="presentation"
+            >
+              {{! template-lint-disable require-context-role }}
+              <button
+                type="button"
+                role="tab"
+                class="wbo-community-header__tab wbo-community-header__tab--sort"
+                aria-selected={{if this.topicsActive "true" "false"}}
+                {{on "click" this.onTopicsTab}}
+              >{{this.currentSortLabel}}</button>
               <button
                 type="button"
                 class="wbo-community-header__sort-trigger"
@@ -508,7 +525,6 @@ export default class WboCommunityHeader extends Component {
                 aria-label={{i18n (themePrefix "community_header.sort")}}
                 {{on "click" this.toggleSort}}
               >
-                <span>{{this.currentSortLabel}}</span>
                 {{wboIcon "caret-down" 16}}
               </button>
               {{#if this.sortOpen}}
@@ -520,14 +536,30 @@ export default class WboCommunityHeader extends Component {
                         class="wbo-community-header__sort-item
                           {{if opt.selected 'active'}}"
                         aria-current={{if opt.selected "page"}}
-                        {{on "click" this.closeSort}}
+                        {{on "click" this.showList}}
                       >{{opt.label}}</a>
                     </li>
                   {{/each}}
                 </ul>
               {{/if}}
             </div>
-          {{/unless}}
+            {{#if this.showCategoriesTab}}
+              <a
+                href={{this.categoriesHref}}
+                role="tab"
+                class="wbo-community-header__tab"
+                aria-selected={{if this.categoriesActive "true" "false"}}
+                {{on "click" this.showList}}
+              >{{i18n "filters.categories.title"}}</a>
+            {{/if}}
+            <button
+              type="button"
+              role="tab"
+              class="wbo-community-header__tab"
+              aria-selected={{if this.isAbout "true" "false"}}
+              {{on "click" (fn this.setTab "about")}}
+            >{{i18n (themePrefix "community_header.about")}}</button>
+          </div>
         </div>
       </div>
 

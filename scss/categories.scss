@@ -31,24 +31,196 @@
   display: none;
 }
 
-.navigation-categories {
-  #main-outlet-wrapper #main-outlet {
-    grid-column-end: sidebar2;
+// ── The categories page ─────────────────────────────────────────────────────
+// A list of cards in the feed column (components/wbo-category-list.gjs), with
+// the same tabs, header and right sidebar as the top-level feeds. Core's own
+// list -- table, muted section -- is hidden: everything else in its container
+// but the card list and the "new topics" notice.
+.categories-list #list-area .contents {
+  > :not(.above-discovery-categories-outlet, .show-more) {
+    display: none;
+  }
+}
 
-    @media screen and (width <= 1160px) {
-      grid-column-end: auto;
+// Core's corner controls on this page are the categories admin dropdown
+// (which sat on top of the phone header's Discord button) and hidden topic
+// buttons. The list ends with New category / Reorder instead.
+body.categories-list .navigation-controls {
+  display: none;
+}
+
+// A category's colour square (components/wbo-category-mark.gjs); the title
+// rows and cards that use it set its size.
+.wbo-category-mark.--square {
+  border-radius: 3px;
+  background: var(--wbo-muted);
+}
+
+.wbo-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
+  // The viewer's muted categories, folded away under the list.
+  &__muted {
+    summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      min-height: 44px;
+      color: var(--wbo-muted);
+      font-size: var(--font-down-1);
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        content: none;
+        display: none;
+      }
+
+      .wbo-icon {
+        transition: transform 0.15s;
+      }
+    }
+
+    &[open] summary .wbo-icon {
+      transform: rotate(180deg);
     }
   }
 
-  .custom-right-sidebar {
-    display: none;
+  &__muted-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    margin-top: 0.5em;
   }
 
-  .list-controls {
-    gap: 0.25em;
+  // Staff: New category, Reorder. Quiet text buttons under the list.
+  &__manage {
+    display: flex;
+    gap: 0.5em;
+    margin-top: -0.5em;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+      min-height: 44px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 100px;
+      background: none;
+      color: var(--wbo-muted);
+      font-family: inherit;
+      font-size: var(--font-down-1);
+      font-weight: 600;
+      cursor: pointer;
+
+      .discourse-no-touch &:hover {
+        background: rgb(var(--wbo-fg-rgb), 0.08);
+        color: var(--wbo-text);
+      }
+    }
+  }
+}
+
+// One category: mark + name, description, then counts -- the same order as a
+// topic card (title, excerpt, replies). The name's link covers the card.
+.wbo-category-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @include custom-card;
+  @include custom-card-hover;
+
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: var(--font-up-2);
+    font-weight: 550;
+    font-stretch: 110%;
+    line-height: 1.15;
   }
 
-  #navigation-bar {
-    display: none;
+  .wbo-category-mark {
+    flex-shrink: 0;
+
+    &.--square {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    .d-icon,
+    .emoji {
+      display: block;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+    }
+  }
+
+  &__link,
+  &__link:visited {
+    color: var(--wbo-label);
+    text-decoration: none;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+    }
+  }
+
+  &__lock {
+    flex-shrink: 0;
+    color: var(--wbo-muted);
+    font-size: var(--font-down-2);
+  }
+
+  &__description {
+    margin: 0;
+    color: var(--wbo-label);
+  }
+
+  &__subcategories {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em 1em;
+    font-size: var(--font-down-1);
+  }
+
+  // "4 topics · 5 posts · 2 unread"
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    color: var(--wbo-muted);
+    font-size: var(--font-down-1);
+
+    > * + *::before {
+      content: "·";
+      margin: 0 0.4em;
+      color: var(--wbo-muted);
+    }
+
+    a {
+      position: relative;
+      z-index: 1;
+      color: var(--wbo-blue-text);
+      font-weight: 600;
+    }
   }
 }

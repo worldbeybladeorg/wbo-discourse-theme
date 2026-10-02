@@ -364,15 +364,16 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     gap: 0.5em;
   }
 
-  // On phones, pulled left by one tab's padding so "Feed" lines up with the
-  // buttons inside the band. On tablets the strip is open, so the active
-  // underline starts at the column edge, like the desktop tabs.
+  // On phones, pulled left by one tab's padding so the first label lines up
+  // with the buttons inside the band. On tablets the strip is open, so the
+  // active underline starts at the column edge, like the desktop tabs.
   &__tabs {
     display: flex;
     gap: 0.25em;
+    min-width: 0;
 
     @media screen and (width <= $wbo-phone-bp) {
-      margin-left: -16px;
+      margin-left: -12px;
     }
   }
 
@@ -380,6 +381,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   // (profile.css: 16px, 110% width): muted 600 text, 2px orange underline
   // on the active tab.
   &__tab {
+    flex-shrink: 0;
     padding: 8px 16px;
     border: 0;
     border-bottom: 2px solid transparent;
@@ -390,12 +392,21 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     font-size: 16px;
     font-weight: 600;
     font-stretch: 110%;
+    line-height: 18px; // the same box for <button> and <a> tabs
+    text-decoration: none;
+    white-space: nowrap;
     cursor: pointer;
     transition:
       color var(--wbo-transition),
       border-color var(--wbo-transition);
 
-    &[aria-selected="true"] {
+    // (A link tab must not go blue once visited.)
+    &:visited {
+      color: var(--wbo-muted);
+    }
+
+    &[aria-selected="true"],
+    &[aria-selected="true"]:visited {
       border-bottom-color: var(--wbo-orange);
       color: var(--wbo-text);
     }
@@ -403,28 +414,49 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     .discourse-no-touch &:hover {
       color: var(--wbo-text);
     }
+
+    // Three tabs and a caret on a 360px phone: a little less padding each.
+    @media screen and (width <= $wbo-phone-bp) {
+      padding-inline: 12px;
+    }
   }
 
+  // The first tab: the topic list, named by its current sort, with a caret
+  // that opens the sort menu. Label and caret are two buttons that read as
+  // one tab, so the underline is on the pair.
   &__sort {
     position: relative;
+    display: flex;
+    min-width: 0;
+    border-bottom: 2px solid transparent;
+    transition: border-color var(--wbo-transition);
+
+    &.is-active {
+      border-bottom-color: var(--wbo-orange);
+    }
   }
 
-  // Same type and box as the Feed/About tabs.
-  // Same type as the tabs, without the underline.
+  // The label gives way (with an ellipsis) before the row can overflow.
+  &__tab--sort {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 4px;
+    border-bottom: 0;
+    text-overflow: ellipsis;
+  }
+
   &__sort-trigger {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
-    gap: 0.3em;
-    padding: 8px 0 10px 16px;
+    padding: 8px 12px 8px 0;
     border: 0;
     background: none;
     color: var(--wbo-muted);
-    font-family: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    font-stretch: 110%;
     cursor: pointer;
 
+    .is-active > &,
     &[aria-expanded="true"],
     .discourse-no-touch &:hover {
       color: var(--wbo-text);
@@ -442,7 +474,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   &__sort-menu {
     position: absolute;
     top: calc(100% + 6px);
-    right: 0;
+    left: 8px;
     z-index: 10;
     min-width: 180px;
     margin: 0;
@@ -497,15 +529,19 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     min-height: 44px;
   }
 
-  &__swatch {
-    flex-shrink: 0;
+  // The category's mark (components/wbo-category-mark.gjs), or a tag icon.
+  .wbo-category-mark.--square {
     width: 16px;
     height: 16px;
-    border-radius: 3px;
-    background: var(--wbo-muted);
   }
 
-  &__mark {
+  &__mark,
+  .wbo-category-mark {
+    flex-shrink: 0;
+  }
+
+  &__mark,
+  .wbo-category-mark:not(.--square) {
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
