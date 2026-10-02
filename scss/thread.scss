@@ -413,6 +413,9 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
   // The Watching / Tracking control: an outlined pill, not a tonal button.
   .notifications-tracking-trigger-btn,
   .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    // (Size via the button rule's custom properties too, common.scss.)
+    --wbo-btn-pad-block: 8px;
+    --wbo-btn-pad-inline: 14px;
     gap: 8px;
     padding-block: 8px;
     padding-inline: 14px;

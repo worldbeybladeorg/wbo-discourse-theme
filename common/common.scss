@@ -243,19 +243,32 @@ $wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link,
   --d-button-border-radius: var(--d-border-radius);
 }
 
-// Core sets `padding-block` / `padding-inline` longhands PLUS
-// `height: var(--d-control-height)` at higher specificity, so the old
-// `padding: 0.5em 1em` shorthand rendered no visible change. Use the
-// longhands here and unset height so the padding actually determines
-// the button box. ~46px tall matches WordPress .btn.
+// Button size: 10px / 20px padding, as tall as its text needs (~44px), like
+// WordPress's .btn.
+//
+// Core's own size rule for these classes (uc-modernize-foundation-theme.scss:
+// `padding-block: 0; padding-inline: var(--space-2); height:
+// var(--d-control-height)`, i.e. 36px tall with 8px sides) has an ID inside
+// its :not(), which gives it the specificity of one ID plus two classes. A
+// class-only rule here always lost to it, so every button on the site was
+// squeezed to core's size. The `#wbo-specificity` / `.wbo-specificity` pair
+// below match nothing; they are there to bring this rule up to the same
+// specificity, where it wins by coming later.
+//
+// Because this rule is now that strong, a component that wants a different
+// size sets the three custom properties instead of the properties themselves
+// (they work from a selector of any strength):
+//   --wbo-btn-pad-block, --wbo-btn-pad-inline, --wbo-btn-height
 :is(#{$wbo-button}):not(
     #{$wbo-not-a-button},
     [class*="post-action-menu__"],
-    [class*="topic-map__"]
-  ) {
-  padding-block: 10px;
-  padding-inline: 20px;
-  height: auto;
+    [class*="topic-map__"],
+    #wbo-specificity
+  ):not(.wbo-specificity) {
+  padding-block: var(--wbo-btn-pad-block, 10px);
+  padding-inline: var(--wbo-btn-pad-inline, 20px);
+  height: var(--wbo-btn-height, auto);
+
   // Match the WP button typography for a coherent site-wide feel.
   font-weight: 600;
   text-transform: capitalize;
