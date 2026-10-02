@@ -42,7 +42,7 @@ export default class SidebarWelcome extends Component {
           class="btn btn-primary wbo-rail-create"
           {{on "click" this.createTopic}}
         >
-          {{wboIcon "pencil" 18}}
+          {{wboIcon "plus-bold" 18}}
           <span>{{i18n (themePrefix "community_header.create_topic")}}</span>
         </button>
       {{/if}}

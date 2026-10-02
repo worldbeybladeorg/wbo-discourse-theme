@@ -22,10 +22,10 @@ en:
     active_since: "Active since"
     total_posts: "Total posts"
   community_header:
-    create_topic: "Create topic"
+    create_topic: "New post"
     discord: "Discord"
     sections: "Community sections"
-    feed: "Feed"
+    feed: "Posts"
     about: "About"
     sort: "Sort topics"
   thread:

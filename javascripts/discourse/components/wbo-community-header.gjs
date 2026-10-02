@@ -183,7 +183,7 @@ export default class WboCommunityHeader extends Component {
               {{on "click" this.createTopic}}
               {{this.watchCreateButton}}
             >
-              {{wboIcon "pencil" 18}}
+              {{wboIcon "plus-bold" 18}}
               <span>{{i18n
                   (themePrefix "community_header.create_topic")
                 }}</span>

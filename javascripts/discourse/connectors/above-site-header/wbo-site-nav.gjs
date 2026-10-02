@@ -261,7 +261,7 @@ export default class WboSiteNav extends Component {
   }
 
   get createButtonLabel() {
-    return this.isOnTopic ? "Reply" : "New topic";
+    return this.isOnTopic ? "Reply" : "New post";
   }
 
   // ── Actions ───────────────────────────────────────────────────────────────
