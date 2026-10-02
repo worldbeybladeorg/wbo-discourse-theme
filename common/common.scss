@@ -219,12 +219,15 @@ body {
   }
 }
 
-// Rows in dropdown menus (topic admin, post admin, notification levels...) are
-// built from .btn too, but they are menu rows, not buttons: every button rule
-// below leaves out `.dropdown-menu__item *`, so they keep core's plain text
-// and row highlight. (Before, only rows that happened to carry a
-// popup-menu-btn class, like "Delete topic", escaped.)
-//
+// ── What the button rules leave alone ───────────────────────────────────────
+// Discourse builds a lot of things that are not buttons out of .btn: icon-only
+// controls, its quiet variants (flat, transparent and link buttons: sidebar
+// section headings, table sort headers, "Discard", upload drop zones), select
+// dropdown headers, and the rows of dropdown menus. Styled as WBO buttons they
+// came out bold, stretched and capitalised, and lost core's own hover. Every
+// button rule below skips this list, so those keep core's plain styling.
+$wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link, [class*='popup-menu-btn'], .select-kit-header, .dropdown-menu__item *";
+
 // Core sets `padding-block` / `padding-inline` longhands PLUS
 // `height: var(--d-control-height)` at higher specificity, so the old
 // `padding: 0.5em 1em` shorthand rendered no visible change. Use the
@@ -234,11 +237,9 @@ body {
 .btn-primary,
 .btn {
   &:not(
-    .btn-icon,
-    [class*="popup-menu-btn"],
+    #{$wbo-not-a-button},
     [class*="post-action-menu__"],
-    [class*="topic-map__"],
-    .dropdown-menu__item *
+    [class*="topic-map__"]
   ) {
     padding-block: 10px;
     padding-inline: 20px;
@@ -455,7 +456,7 @@ h1 {
 //   border-color: the accent (2px for prominence, matches WP)
 //   background:   the mixed fill
 
-.btn:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *) {
+.btn:not(#{$wbo-not-a-button}) {
   --btn-accent: transparent;
   --btn-fill: var(--wbo-btn-fill-rest);
   --btn-ink: var(--wbo-text);
@@ -475,7 +476,7 @@ h1 {
   font-stretch: 110%;
 }
 
-.btn:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *, .btn-flat, .btn-link) {
+.btn:not(#{$wbo-not-a-button}) {
   box-shadow: var(--wbo-btn-lift);
 }
 
@@ -488,7 +489,7 @@ h1 {
 // which wipes our 2px accent border and fill. WordPress's hover is just
 // `opacity: .85`; re-assert the resting look and fade it.
 .discourse-no-touch
-  .btn:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *):hover {
+  .btn:not(#{$wbo-not-a-button}):hover {
   border-width: 2px;
   border-style: solid;
   border-color: var(--btn-accent);
@@ -510,22 +511,22 @@ h1 {
 
 // Accented variants set ONLY --btn-accent and their label colour, exactly as
 // WordPress does (.btn-primary { --btn-accent: var(--orange) }).
-.btn-primary:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *) {
+.btn-primary:not(#{$wbo-not-a-button}) {
   --btn-accent: var(--wbo-orange);
   --btn-ink: var(--wbo-btn-ink-primary);
 }
-.btn-danger:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *) {
+.btn-danger:not(#{$wbo-not-a-button}) {
   --btn-accent: var(--wbo-danger);
   --btn-ink: var(--wbo-btn-ink-danger);
 }
-.btn-success:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *) {
+.btn-success:not(#{$wbo-not-a-button}) {
   --btn-accent: var(--wbo-success);
   --btn-ink: var(--wbo-btn-ink-success);
 }
 
-.btn-primary:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *),
-.btn-danger:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *),
-.btn-success:not(.btn-icon, [class*="popup-menu-btn"], .dropdown-menu__item *) {
+.btn-primary:not(#{$wbo-not-a-button}),
+.btn-danger:not(#{$wbo-not-a-button}),
+.btn-success:not(#{$wbo-not-a-button}) {
   color: var(--btn-ink);
   text-shadow: var(--wbo-btn-text-shadow);
 
