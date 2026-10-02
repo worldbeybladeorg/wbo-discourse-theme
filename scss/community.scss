@@ -376,7 +376,10 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     @media screen and (width <= $wbo-phone-bp) {
       display: grid;
       flex: 1 1 auto;
-      grid-auto-columns: minmax(0, 1fr);
+      // Even, unless a label needs more than a third: "Unread (25)" on a
+      // 360px phone takes a few pixels from the other two instead of being
+      // cut off.
+      grid-auto-columns: minmax(max-content, 1fr);
       grid-auto-flow: column;
       gap: 0;
       margin-inline: -16px; // the band's own padding
