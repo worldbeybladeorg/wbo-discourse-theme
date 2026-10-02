@@ -8,8 +8,8 @@ import { wboIcon } from "../lib/wbo-icon";
 import WboAboutPanel from "./wbo-about-panel";
 
 // Right sidebar on a tag page: the same sidebar as the top-level feeds and
-// category pages -- the New post button above the About panel -- with the
-// panel's first box about this tag. New post opens the composer with the tag
+// category pages -- the New topic button above the About panel -- with the
+// panel's first box about this tag. New topic opens the composer with the tag
 // filled in. Watching and the sidebar star are in the page's title row
 // (wbo-community-header.gjs). A tag within a category is that category's
 // page (sidebar-about-category.gjs).

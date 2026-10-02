@@ -30,8 +30,8 @@ const CREATE_OFFSCREEN_CLASS = "wbo-header-create-offscreen";
 const NAV_HEIGHT = 56;
 
 // Narrow-screen header for the top-level feeds, Reddit style:
-//   [New post] [Discord]
-//   Posts | About                      Latest ▾
+//   [New topic] [Discord]
+//   Topics | About                      Latest ▾
 // Only shows where the right sidebar is hidden (CSS, <= 1160px), where it
 // replaces Discourse's navigation bar: phones and tablets alike.
 // The About tab shows the same panel the right sidebar shows on desktop.
@@ -39,10 +39,10 @@ const NAV_HEIGHT = 56;
 // A category or tag page gets the same header, scoped to that category or
 // tag, under a title row that names it (in place of the old colour banner):
 //   ■ Beyblade General                         [settings]
-//   [New post] [Watching]
-//   Posts | About                      Latest ▾
+//   [New topic] [Watching]
+//   Topics | About                      Latest ▾
 // The title row shows at every width. Above 1160px it is all that shows, and
-// it carries the Watching control and the sidebar star (New post is at the
+// it carries the Watching control and the sidebar star (New topic is at the
 // top of the right sidebar there, and the filters are Discourse's own tabs).
 export default class WboCommunityHeader extends Component {
   @service router;

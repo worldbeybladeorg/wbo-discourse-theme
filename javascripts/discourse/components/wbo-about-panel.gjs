@@ -105,7 +105,7 @@ function fetchPostsCount() {
 // On a category page (@category) the first box is about the category instead
 // (its description and counts, then its subcategories and top tags if it has
 // any). On a tag page (@tag) it is about the tag: its description, if it has
-// one, and how many posts use it. Discord and the rules stay as they are
+// one, and how many topics use it. Discord and the rules stay as they are
 // everywhere.
 export default class WboAboutPanel extends Component {
   @service currentUser;
@@ -174,8 +174,8 @@ export default class WboAboutPanel extends Component {
     return (settings.rules || []).filter((r) => r?.title);
   }
 
-  // "Posts" are topics, as everywhere else in the theme ("New post",
-  // "0 Replies"); both counts include the category's subcategories.
+  // Topics, and the replies to them (posts that aren't a topic's first);
+  // both counts include the category's subcategories.
   get categoryCounts() {
     const all = [
       this.args.category,
@@ -229,7 +229,7 @@ export default class WboAboutPanel extends Component {
     return this.tagInfo?.description;
   }
 
-  get tagPosts() {
+  get tagTopics() {
     const count = this.tagInfo?.topic_count ?? this.args.tag.topic_count ?? 0;
     return count.toLocaleString();
   }
@@ -261,7 +261,7 @@ export default class WboAboutPanel extends Component {
           {{/if}}
           <dl class="wbo-about__stats">
             <div class="wbo-about__stat">
-              <dt>{{i18n (themePrefix "about_panel.category_posts")}}</dt>
+              <dt>{{i18n (themePrefix "about_panel.category_topics")}}</dt>
               <dd>{{this.categoryCounts.topics}}</dd>
             </div>
             <div class="wbo-about__stat">
@@ -320,8 +320,8 @@ export default class WboAboutPanel extends Component {
           {{/if}}
           <dl class="wbo-about__stats">
             <div class="wbo-about__stat">
-              <dt>{{i18n (themePrefix "about_panel.category_posts")}}</dt>
-              <dd>{{this.tagPosts}}</dd>
+              <dt>{{i18n (themePrefix "about_panel.category_topics")}}</dt>
+              <dd>{{this.tagTopics}}</dd>
             </div>
           </dl>
         </section>

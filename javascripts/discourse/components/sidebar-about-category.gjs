@@ -9,8 +9,8 @@ import { wboIcon } from "../lib/wbo-icon";
 import WboAboutPanel from "./wbo-about-panel";
 
 // Right sidebar on a category page: the same sidebar as the top-level feeds
-// (sidebar-welcome.gjs) -- the New post button above the About panel -- with
-// the panel's first box about this category. New post opens the composer in
+// (sidebar-welcome.gjs) -- the New topic button above the About panel -- with
+// the panel's first box about this category. New topic opens the composer in
 // the category. Watching and the sidebar star are in the page's title row
 // (wbo-community-header.gjs).
 export default class SidebarAboutCategory extends Component {

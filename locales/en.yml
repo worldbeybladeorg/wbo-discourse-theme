@@ -21,13 +21,13 @@ en:
     online_now: "%{count} online"
     active_since: "Active since"
     total_posts: "Total posts"
-    category_posts: "Posts"
+    category_topics: "Topics"
     category_replies: "Replies"
   community_header:
-    create_topic: "New post"
+    create_topic: "New topic"
     discord: "Discord"
     sections: "Community sections"
-    feed: "Posts"
+    feed: "Topics"
     about: "About"
     sort: "Sort topics"
   thread:
