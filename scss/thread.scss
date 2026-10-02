@@ -441,12 +441,6 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
   display: none;
 }
 
-// The menu's descriptions are sentences; the theme's button rule (common.scss)
-// was capitalising every word of them.
-.notifications-tracking-btn .notifications-tracking-btn__description {
-  text-transform: none;
-}
-
 // It no longer needs its explanation sentence either way.
 #topic-footer-buttons .topic-notifications-button .reason .text {
   display: none;
