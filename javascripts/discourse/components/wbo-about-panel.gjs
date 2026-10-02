@@ -2,8 +2,10 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { service } from "@ember/service";
 import { htmlSafe } from "@ember/template";
+import categoryLink from "discourse/helpers/category-link";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
+import { getCategoryAndTagUrl } from "discourse/lib/url";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 
@@ -95,7 +97,12 @@ function fetchPostsCount() {
 // online count), rules. Right sidebar on wide screens; the About tab on
 // narrow ones (@mobile), which also lists the categories. Copy comes from
 // theme settings.
+//
+// On a category page (@category) the first box is about the category instead
+// (its description and counts, then its subcategories and top tags if it has
+// any); Discord and the rules stay as they are everywhere.
 export default class WboAboutPanel extends Component {
+  @service currentUser;
   @service site;
 
   @tracked onlineCount = null;
@@ -159,26 +166,114 @@ export default class WboAboutPanel extends Component {
     return (settings.rules || []).filter((r) => r?.title);
   }
 
+  // "Posts" are topics, as everywhere else in the theme ("New post",
+  // "0 Replies"); both counts include the category's subcategories.
+  get categoryCounts() {
+    const all = [
+      this.args.category,
+      ...(this.args.category.subcategories || []),
+    ];
+    const topics = all.reduce((n, c) => n + (c.topic_count || 0), 0);
+    const posts = all.reduce((n, c) => n + (c.post_count || 0), 0);
+    return {
+      topics: topics.toLocaleString(),
+      replies: Math.max(posts - topics, 0).toLocaleString(),
+    };
+  }
+
+  get categoryAdminTip() {
+    return i18n(themePrefix("about_category_admin_tip_description"), {
+      topicUrl: this.args.category.topic_url,
+    });
+  }
+
+  get subcategories() {
+    return this.args.category.subcategories || [];
+  }
+
+  get categoryTopTags() {
+    return (this.site.categoryTopTags || []).map((tag) => ({
+      name: tag.name,
+      href: getCategoryAndTagUrl(this.args.category, true, tag),
+    }));
+  }
+
+  get hasCategoryLinks() {
+    return this.subcategories.length > 0 || this.categoryTopTags.length > 0;
+  }
+
   <template>
     <div class="wbo-about">
-      <section class="wbo-about__card">
-        <h2 class="wbo-about__heading">
-          {{settings.about_heading}}
-        </h2>
-        <p class="wbo-about__text">{{settings.about_text}}</p>
-        <dl class="wbo-about__stats">
-          {{#if this.activeSince}}
-            <div class="wbo-about__stat">
-              <dt>{{i18n (themePrefix "about_panel.active_since")}}</dt>
-              <dd>{{this.activeSince}}</dd>
-            </div>
+      {{#if @category}}
+        <section class="wbo-about__card">
+          <h2 class="wbo-about__heading">
+            {{i18n (themePrefix "about_category")}}
+          </h2>
+          {{#if @category.description}}
+            <p class="wbo-about__text">{{htmlSafe @category.description}}</p>
+          {{else if this.currentUser.admin}}
+            <p class="wbo-about__muted">{{htmlSafe this.categoryAdminTip}}</p>
           {{/if}}
-          <div class="wbo-about__stat">
-            <dt>{{i18n (themePrefix "about_panel.total_posts")}}</dt>
-            <dd>{{this.postsLabel}}</dd>
-          </div>
-        </dl>
-      </section>
+          <dl class="wbo-about__stats">
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.category_posts")}}</dt>
+              <dd>{{this.categoryCounts.topics}}</dd>
+            </div>
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.category_replies")}}</dt>
+              <dd>{{this.categoryCounts.replies}}</dd>
+            </div>
+          </dl>
+        </section>
+
+        {{#if this.hasCategoryLinks}}
+          <section class="wbo-about__card">
+            {{#if this.subcategories.length}}
+              <h2 class="wbo-about__heading">
+                {{i18n (themePrefix "subcategories")}}
+              </h2>
+              <div class="wbo-about__chips">
+                {{#each this.subcategories as |subcategory|}}
+                  {{categoryLink subcategory}}
+                {{/each}}
+              </div>
+            {{/if}}
+            {{#if this.categoryTopTags.length}}
+              <h2 class="wbo-about__heading">
+                {{i18n (themePrefix "top_tags")}}
+              </h2>
+              <div class="wbo-about__chips discourse-tags">
+                {{#each this.categoryTopTags as |tag|}}
+                  <a
+                    href={{tag.href}}
+                    data-tag-name={{tag.name}}
+                    class="discourse-tag simple"
+                  >{{tag.name}}</a>
+                {{/each}}
+              </div>
+            {{/if}}
+          </section>
+        {{/if}}
+      {{else}}
+        <section class="wbo-about__card">
+          <h2 class="wbo-about__heading">
+            {{settings.about_heading}}
+          </h2>
+          <p class="wbo-about__text">{{settings.about_text}}</p>
+          <dl class="wbo-about__stats">
+            {{#if this.activeSince}}
+              <div class="wbo-about__stat">
+                <dt>{{i18n (themePrefix "about_panel.active_since")}}</dt>
+                <dd>{{this.activeSince}}</dd>
+              </div>
+            {{/if}}
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.total_posts")}}</dt>
+              <dd>{{this.postsLabel}}</dd>
+            </div>
+          </dl>
+        </section>
+      {{/if}}
 
       {{#if this.discordUrl}}
         <section class="wbo-about__card wbo-about__discord">

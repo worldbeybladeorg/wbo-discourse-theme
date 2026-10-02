@@ -2,14 +2,24 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
-import { action } from "@ember/object";
+import { action, get } from "@ember/object";
 import { service } from "@ember/service";
+import { htmlSafe } from "@ember/template";
 import { modifier } from "ember-modifier";
+import CategoryNotificationsTracking from "discourse/components/category-notifications-tracking";
+import DButton from "discourse/components/d-button";
 import icon from "discourse/helpers/d-icon";
+import replaceEmoji from "discourse/helpers/replace-emoji";
 import getURL from "discourse/lib/get-url";
+import { NotificationLevels } from "discourse/lib/notification-levels";
+import DiscourseURL from "discourse/lib/url";
+import Category from "discourse/models/category";
 import Composer from "discourse/models/composer";
+import NavItem from "discourse/models/nav-item";
+import PermissionType from "discourse/models/permission-type";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
+import AddToSidebar from "./add-to-sidebar";
 import WboAboutPanel from "./wbo-about-panel";
 
 const ABOUT_CLASS = "wbo-about-tab-open";
@@ -19,11 +29,20 @@ const CREATE_OFFSCREEN_CLASS = "wbo-header-create-offscreen";
 const NAV_HEIGHT = 56;
 
 // Narrow-screen header for the top-level feeds, Reddit style:
-//   [Create topic] [Discord]
-//   Feed | About                       Latest ▾
+//   [New post] [Discord]
+//   Posts | About                      Latest ▾
 // Only shows where the right sidebar is hidden (CSS, <= 1160px), where it
 // replaces Discourse's navigation bar: phones and tablets alike.
 // The About tab shows the same panel the right sidebar shows on desktop.
+//
+// A category page gets the same header, scoped to the category, under a title
+// row that names it (in place of the old colour banner):
+//   ■ Beyblade General                         [settings]
+//   [New post] [Watching]
+//   Posts | About                      Latest ▾
+// The title row shows at every width. Above 1160px it is all that shows, and
+// it carries the Watching control and the sidebar star (New post is at the
+// top of the right sidebar there, and the filters are Discourse's own tabs).
 export default class WboCommunityHeader extends Component {
   @service router;
   @service siteSettings;
@@ -78,12 +97,69 @@ export default class WboCommunityHeader extends Component {
     return this.siteSettings.top_menu.split("|").filter(Boolean);
   }
 
+  get routeAttributes() {
+    return this.router.currentRoute?.attributes;
+  }
+
+  // The category this page lists, if it is a category page (a tag within a
+  // category counts as that category's page, as it does for the sidebar).
+  get category() {
+    return this.routeAttributes?.category;
+  }
+
+  get tag() {
+    return this.routeAttributes?.tag;
+  }
+
   get currentFilter() {
-    return this.router.currentRoute?.localName;
+    return (
+      (this.category && this.routeAttributes.filterType) ||
+      this.router.currentRoute?.localName
+    );
   }
 
   get isTopRoute() {
-    return this.topMenu.includes(this.currentFilter);
+    return this.topMenu.includes(this.router.currentRoute?.localName);
+  }
+
+  get show() {
+    return !!this.category || this.isTopRoute;
+  }
+
+  // The category's own mark, as in the sidebar: its icon or emoji if it has
+  // one, otherwise a square of its colour.
+  get categoryIcon() {
+    return this.category.style_type === "icon" ? this.category.icon : null;
+  }
+
+  get categoryEmoji() {
+    return this.category.style_type === "emoji" ? this.category.emoji : null;
+  }
+
+  get categoryEmojiCode() {
+    return `:${this.categoryEmoji}:`;
+  }
+
+  get categoryColorStyle() {
+    const color = this.category.color;
+    if (!/^[0-9a-f]{3,8}$/i.test(color || "")) {
+      return null;
+    }
+    return htmlSafe(
+      this.categoryIcon ? `color: #${color}` : `background-color: #${color}`
+    );
+  }
+
+  get notificationLevel() {
+    if (
+      this.currentUser?.indirectly_muted_category_ids?.includes(
+        this.category.id
+      )
+    ) {
+      return NotificationLevels.MUTED;
+    }
+    // get(): notification_level is set() by the model, so read it tracked.
+    return get(this.category, "notification_level");
   }
 
   get isAbout() {
@@ -91,7 +167,10 @@ export default class WboCommunityHeader extends Component {
   }
 
   get canCreateTopic() {
-    return this.currentUser?.can_create_topic;
+    if (!this.currentUser?.can_create_topic) {
+      return false;
+    }
+    return !this.category || this.category.permission === PermissionType.FULL;
   }
 
   get discordUrl() {
@@ -99,13 +178,25 @@ export default class WboCommunityHeader extends Component {
   }
 
   get sortOptions() {
-    return this.topMenu.map((name) => {
+    const category = this.category;
+    const noSubcategories = !!this.routeAttributes?.noSubcategories;
+    // Within a category the counts and links are the category's own, and
+    // "Categories" (a site-wide page) drops out.
+    const tag = category ? this.tag : null;
+    const scope = category
+      ? { categoryId: category.id, tagId: tag?.id, noSubcategories }
+      : {};
+    const names = category
+      ? this.topMenu.filter((name) => name !== "categories")
+      : this.topMenu;
+
+    return names.map((name) => {
       let label = i18n(`filters.${name}.title`);
       let count = 0;
       if (this.currentUser && name === "unread") {
-        count = this.topicTrackingState.countUnread();
+        count = this.topicTrackingState.countUnread(scope);
       } else if (this.currentUser && name === "new") {
-        count = this.topicTrackingState.countNew();
+        count = this.topicTrackingState.countNew(scope);
       }
       if (count > 0) {
         label = `${label} (${count})`;
@@ -113,7 +204,9 @@ export default class WboCommunityHeader extends Component {
       return {
         name,
         label,
-        href: getURL(`/${name}`),
+        href: category
+          ? NavItem.pathFor(name, { category, noSubcategories, tag })
+          : getURL(`/${name}`),
         selected: name === this.currentFilter,
       };
     });
@@ -169,12 +262,68 @@ export default class WboCommunityHeader extends Component {
     this.composer.open({
       action: Composer.CREATE_TOPIC,
       draftKey: Composer.NEW_TOPIC_KEY,
+      categoryId: this.category?.id,
+      tags: this.category ? this.tag?.name : undefined,
     });
   }
 
+  @action
+  changeNotificationLevel(level) {
+    return this.category.setNotification(level);
+  }
+
+  // The same destination as core's own wrench button on category pages.
+  @action
+  editCategory() {
+    DiscourseURL.routeTo(`/c/${Category.slugFor(this.category)}/edit`);
+  }
+
   <template>
-    {{#if this.isTopRoute}}
-      <div class="wbo-community-header">
+    {{#if this.show}}
+      <div
+        class="wbo-community-header
+          {{if this.category 'wbo-community-header--category'}}"
+      >
+        {{#if this.category}}
+          <div class="wbo-community-header__title">
+            {{#if this.categoryIcon}}
+              <span
+                class="wbo-community-header__mark"
+                style={{this.categoryColorStyle}}
+              >{{icon this.categoryIcon}}</span>
+            {{else if this.categoryEmoji}}
+              <span class="wbo-community-header__mark">{{replaceEmoji
+                  this.categoryEmojiCode
+                }}</span>
+            {{else}}
+              <span
+                class="wbo-community-header__swatch"
+                style={{this.categoryColorStyle}}
+              ></span>
+            {{/if}}
+            <h1 class="wbo-community-header__name">{{this.category.name}}</h1>
+            {{#if this.currentUser}}
+              <span class="wbo-community-header__rail-only">
+                <CategoryNotificationsTracking
+                  @levelId={{this.notificationLevel}}
+                  @onChange={{this.changeNotificationLevel}}
+                  @showFullTitle={{true}}
+                  @showCaret={{true}}
+                />
+                <AddToSidebar @category={{this.category}} />
+              </span>
+            {{/if}}
+            {{#if this.category.can_edit}}
+              <DButton
+                @action={{this.editCategory}}
+                @icon="wrench"
+                @title="category.edit_title"
+                class="btn-flat wbo-community-header__settings"
+              />
+            {{/if}}
+          </div>
+        {{/if}}
+
         <div class="wbo-community-header__actions">
           {{#if this.canCreateTopic}}
             <button
@@ -189,7 +338,16 @@ export default class WboCommunityHeader extends Component {
                 }}</span>
             </button>
           {{/if}}
-          {{#if this.discordUrl}}
+          {{#if this.category}}
+            {{#if this.currentUser}}
+              <CategoryNotificationsTracking
+                @levelId={{this.notificationLevel}}
+                @onChange={{this.changeNotificationLevel}}
+                @showFullTitle={{true}}
+                @showCaret={{true}}
+              />
+            {{/if}}
+          {{else if this.discordUrl}}
             <a
               href={{this.discordUrl}}
               class="btn wbo-btn-discord"
@@ -259,7 +417,7 @@ export default class WboCommunityHeader extends Component {
 
       {{#if this.isAbout}}
         <div class="wbo-community-header__about">
-          <WboAboutPanel @mobile={{true}} />
+          <WboAboutPanel @mobile={{true}} @category={{this.category}} />
         </div>
       {{/if}}
     {{/if}}

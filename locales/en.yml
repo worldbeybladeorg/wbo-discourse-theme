@@ -21,6 +21,8 @@ en:
     online_now: "%{count} online"
     active_since: "Active since"
     total_posts: "Total posts"
+    category_posts: "Posts"
+    category_replies: "Replies"
   community_header:
     create_topic: "New post"
     discord: "Discord"

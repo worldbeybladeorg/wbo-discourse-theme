@@ -1,9 +1,10 @@
 // ── Community About panel + narrow-screen community header ──────────────────
 //
-// components/wbo-about-panel.gjs: right sidebar on the top-level feeds, and
-// the About tab on narrow screens. components/wbo-community-header.gjs: the
-// Feed/About tabs (<= 1160px, where the right sidebar is hidden) plus the
-// Create topic / Discord buttons and sort menu (<= 719px, phones).
+// components/wbo-about-panel.gjs: right sidebar on the top-level feeds and
+// category pages, and the About tab on narrow screens.
+// components/wbo-community-header.gjs: the Posts/About tabs, New post /
+// Discord buttons and sort menu (<= 1160px, where the right sidebar is
+// hidden), and on category pages the title row (every width).
 // Type comes from the theme scale; this sheet sets layout and colour only.
 
 $wbo-rail-hidden-bp: 1160px; // matches the grid in common.scss
@@ -307,6 +308,22 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     color: var(--wbo-blue-text);
     font-weight: 600;
   }
+
+  // A category's subcategories and top tags (category pages).
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    font-size: var(--font-down-1);
+
+    a {
+      display: flex;
+    }
+
+    + .wbo-about__heading {
+      margin-top: 0.25em;
+    }
+  }
 }
 
 // ── Community header (narrow screens) ───────────────────────────────────────
@@ -464,6 +481,173 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 
   &__about {
     margin-bottom: 1em;
+  }
+
+  // ── Category pages: the title row ─────────────────────────────────────────
+  // The category's colour square (or its icon / emoji) and its name, in place
+  // of the old full-width colour banner. 44px tall, the height of the
+  // sidebar's New post button, which it sits level with.
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+  }
+
+  &__swatch {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: var(--wbo-muted);
+  }
+
+  &__mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    color: var(--wbo-muted);
+
+    .d-icon,
+    .emoji {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+    }
+  }
+
+  // Headings are bold (700) at 110% width, as on WordPress.
+  &__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--font-up-5);
+    font-weight: 700;
+    font-stretch: 110%;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+
+    @media screen and (width <= $wbo-phone-bp) {
+      font-size: var(--font-up-3);
+    }
+  }
+
+  // Watching + the sidebar star: in the title row only where the right
+  // sidebar shows (below that, Watching is the second header button and
+  // there is no left sidebar to add to).
+  &__rail-only {
+    display: none;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// The title row's controls. #main-outlet in the selectors: core sets .btn
+// padding and height at three-class specificity (see the header buttons
+// above).
+//
+// Watching / Tracking: the same outlined pill as on a topic page
+// (scss/thread.scss), not a tonal button.
+#main-outlet .wbo-community-header__title {
+  .notifications-tracking-trigger-btn,
+  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    gap: 8px;
+    height: auto;
+    padding-block: 8px;
+    padding-inline: 14px;
+    border: 1px solid var(--redditish-border-color);
+    background: var(--secondary);
+    box-shadow: none;
+    color: var(--wbo-label);
+    font-size: var(--font-down-1);
+    text-shadow: none;
+    text-transform: none;
+  }
+
+  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    border-color: var(--redditish-border-highlight-color);
+    opacity: 1;
+  }
+
+  // The star and the staff-only settings wrench: quiet round icon buttons.
+  .add-to-sidebar.btn,
+  .wbo-community-header__settings.btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+
+    .d-icon {
+      margin: 0;
+    }
+
+    .discourse-no-touch &:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.08);
+    }
+  }
+
+  .wbo-community-header__settings.btn {
+    color: var(--wbo-muted);
+
+    .d-icon {
+      color: inherit;
+    }
+
+    .discourse-no-touch &:hover {
+      color: var(--wbo-text);
+    }
+
+    // A full-size tap target on phones, without growing the row.
+    @media screen and (width <= $wbo-phone-bp) {
+      width: 44px;
+      height: 44px;
+      margin: -4px -12px -4px 0;
+    }
+  }
+}
+
+// The title row has the settings button, so core's own wrench (pinned to the
+// top-right corner of the window, scss/topic-list.scss) goes.
+body:has(.wbo-community-header--category) .navigation-controls .edit-category {
+  display: none;
+}
+
+// Where the right sidebar shows, a category page's header is the title row
+// alone: New post is at the top of the sidebar and the filters are
+// Discourse's own tabs, directly under the title.
+@media screen and (width > $wbo-rail-hidden-bp) {
+  .wbo-community-header.wbo-community-header--category {
+    display: flex;
+    flex-direction: column;
+
+    .wbo-community-header__actions,
+    .wbo-community-header__bar {
+      display: none;
+    }
+
+    .wbo-community-header__rail-only {
+      display: inline-flex;
+    }
+  }
+
+  // (The outlet is otherwise dropped at this width, see below.)
+  .list-controls .custom-post-bar:has(.wbo-community-header--category) {
+    display: block;
+  }
+
+  // Title, then the tabs 12px under it; the tab strip doesn't need the 44px
+  // it has on the feeds (where it stands level with the sidebar's button).
+  .list-controls:has(.wbo-community-header--category) {
+    gap: 12px;
+
+    #navigation-bar.nav-pills {
+      min-height: 0;
+    }
   }
 }
 
