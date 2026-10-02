@@ -266,7 +266,9 @@ body {
   color: inherit;
 }
 
-.btn[class*="popup-menu-btn"] {
+// (Not menu rows: there it would leave the one row with this class 1px out of
+// line with its neighbours, which keep core's transparent border.)
+.btn[class*="popup-menu-btn"]:not(.dropdown-menu__item *) {
   border: none;
 }
 
