@@ -219,18 +219,26 @@ body {
   }
 }
 
-// ── What the button rules leave alone ───────────────────────────────────────
-// Discourse builds a lot of things that are not buttons out of .btn: icon-only
-// controls, its quiet variants (flat, transparent and link buttons: sidebar
-// section headings, table sort headers, "Discard", upload drop zones), select
-// dropdown headers, and the rows of dropdown menus. Styled as WBO buttons they
-// came out bold, stretched and capitalised, and lost core's own hover. Every
-// button rule below skips this list, so those keep core's plain styling.
+// ── Which elements get the WBO button look ─────────────────────────────────
+// Discourse builds a great many things out of .btn that are not buttons: menu
+// rows, sidebar section headings, table sort headers, dropdown headers, upload
+// drop zones, icon-only controls. So the button rules below do not start from
+// .btn. They apply only to the classes Discourse puts on real buttons, plus the
+// theme's own Discord button:
+$wbo-button: ".btn-default, .btn-primary, .btn-danger, .btn-success, .btn-social, .wbo-btn-discord";
+
+// ...and, among those, not to these. Discourse reuses the variant classes on a
+// few things that still are not buttons (icon-only triggers, select dropdown
+// headers, rows of dropdown menus, quiet buttons that also carry a variant).
 //
-// The admin panel is on the list whole (`.admin-interface *`): it is laid out
+// The admin panel is left out whole (`.admin-interface *`): it is laid out
 // around Discourse's own compact buttons, and the WBO plain button (no border,
 // no fill) read there as bold text rather than a button. Admin keeps stock
 // Discourse buttons, corner radius included.
+//
+// Anything new that Discourse or a plugin adds therefore looks like stock
+// Discourse until its class is added to $wbo-button, rather than being
+// restyled by accident.
 $wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link, [class*='popup-menu-btn'], .select-kit-header, .dropdown-menu__item *, .admin-interface *";
 
 .admin-interface {
@@ -242,21 +250,17 @@ $wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link,
 // `padding: 0.5em 1em` shorthand rendered no visible change. Use the
 // longhands here and unset height so the padding actually determines
 // the button box. ~46px tall matches WordPress .btn.
-.btn-default,
-.btn-primary,
-.btn {
-  &:not(
+:is(#{$wbo-button}):not(
     #{$wbo-not-a-button},
     [class*="post-action-menu__"],
     [class*="topic-map__"]
   ) {
-    padding-block: 10px;
-    padding-inline: 20px;
-    height: auto;
-    // Match the WP button typography for a coherent site-wide feel.
-    font-weight: 600;
-    text-transform: capitalize;
-  }
+  padding-block: 10px;
+  padding-inline: 20px;
+  height: auto;
+  // Match the WP button typography for a coherent site-wide feel.
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 // Icons inside text-bearing buttons should be the same colour as the
@@ -462,7 +466,7 @@ h1 {
 //   border-color: the accent (2px for prominence, matches WP)
 //   background:   the mixed fill
 
-.btn:not(#{$wbo-not-a-button}) {
+:is(#{$wbo-button}):not(#{$wbo-not-a-button}) {
   --btn-accent: transparent;
   --btn-fill: var(--wbo-btn-fill-rest);
   --btn-ink: var(--wbo-text);
@@ -482,7 +486,7 @@ h1 {
   font-stretch: 110%;
 }
 
-.btn:not(#{$wbo-not-a-button}) {
+:is(#{$wbo-button}):not(#{$wbo-not-a-button}) {
   box-shadow: var(--wbo-btn-lift);
 }
 
@@ -495,7 +499,7 @@ h1 {
 // which wipes our 2px accent border and fill. WordPress's hover is just
 // `opacity: .85`; re-assert the resting look and fade it.
 .discourse-no-touch
-  .btn:not(#{$wbo-not-a-button}):hover {
+  :is(#{$wbo-button}):not(#{$wbo-not-a-button}):hover {
   border-width: 2px;
   border-style: solid;
   border-color: var(--btn-accent);
