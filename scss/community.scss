@@ -364,18 +364,22 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     gap: 0.5em;
   }
 
-  // On phones, pulled left by one tab's padding so the first label lines up
-  // with the buttons inside the band. On tablets the strip is open, so the
-  // active underline starts at the column edge, like the desktop tabs.
+  // Phones: the tabs are even columns across the whole band (three on the
+  // top-level pages, two on a category or tag page), labels centred, like an
+  // app's tab bar. Tablets keep them packed at the left, like the desktop
+  // tabs, with the active underline starting at the column edge.
   &__tabs {
     display: flex;
     gap: 0.25em;
     min-width: 0;
 
-    // (Right too: the last tab's padding can run into the band's own, which
-    // is what lets "Unread (25)" fit beside the others on a 360px phone.)
     @media screen and (width <= $wbo-phone-bp) {
-      margin-inline: -12px;
+      display: grid;
+      flex: 1 1 auto;
+      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-flow: column;
+      gap: 0;
+      margin-inline: -16px; // the band's own padding
     }
   }
 
@@ -395,6 +399,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     font-weight: 600;
     font-stretch: 110%;
     line-height: 18px; // the same box for <button> and <a> tabs
+    text-align: center;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
@@ -417,9 +422,10 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
       color: var(--wbo-text);
     }
 
-    // Three tabs and a caret on a 360px phone: a little less padding each.
+    // In a column the label is centred, so the side padding is only a
+    // minimum gap for a long one ("Unread (25)" on a 360px phone).
     @media screen and (width <= $wbo-phone-bp) {
-      padding-inline: 12px;
+      padding-inline: 4px;
     }
   }
 
@@ -429,6 +435,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   &__sort {
     position: relative;
     display: flex;
+    justify-content: center;
     min-width: 0;
     border-bottom: 2px solid transparent;
     transition: border-color var(--wbo-transition);
@@ -471,12 +478,17 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     &[aria-expanded="true"] .wbo-icon {
       transform: rotate(180deg);
     }
+
+    @media screen and (width <= $wbo-phone-bp) {
+      padding-right: 4px;
+    }
   }
 
   &__sort-menu {
     position: absolute;
     top: calc(100% + 6px);
     left: 8px;
+    text-align: left;
     z-index: 10;
     min-width: 180px;
     margin: 0;
