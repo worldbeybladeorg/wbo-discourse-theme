@@ -109,6 +109,20 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
   }
 }
 
+// Jumping straight to a reply (a link to it, a notification, the timeline):
+// core scrolls the post's <article> to just under ITS OWN header's height
+// (52px), which the WBO bar (56px) covers. With the card's padding outside
+// the article, that left the top padding and the first pixels of the author
+// row under the bar. So a reply's article starts 22px above its content
+// (pulled up, then padded back down): the same scroll now lands with the
+// card's top edge at the bottom of the bar.
+.post-stream
+  > [data-post-number]:not([data-post-number="1"])
+  > article:not(.small-action) {
+  margin-top: -22px;
+  padding-top: 22px;
+}
+
 // "N days later" and "last visit" lines sit between two posts: a short muted
 // line of their own, between the same hairlines as everything else.
 .post-stream > .small-action {
