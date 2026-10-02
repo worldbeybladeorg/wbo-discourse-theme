@@ -301,17 +301,14 @@ $wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link,
   padding-left: 0;
 }
 
-// Section headers ("Categories", "Tags") are .btn elements, so they picked up
-// the tonal button fill and light-mode lift and read as floating chips. They
-// are headings, not buttons: flat.
-.sidebar-wrapper .sidebar-section-wrapper .sidebar-section-header,
-.discourse-no-touch
-  .sidebar-wrapper
-  .sidebar-section-wrapper
-  .sidebar-section-header:hover {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
+// Section headings ("Categories", "Tags"; "Reports", "Appearance" in the admin
+// menu) in sentence case at 600, like the site's other small headings, rather
+// than core's uppercase letterspaced label. (They are quiet .btn elements, so
+// the button rules above already leave them alone.)
+.sidebar-wrapper .sidebar-section-wrapper .sidebar-section-header {
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .sidebar-section-link-wrapper button {
