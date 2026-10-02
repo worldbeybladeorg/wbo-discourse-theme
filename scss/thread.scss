@@ -619,9 +619,15 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
     gap: 8px;
     box-sizing: border-box;
     min-height: 44px;
-    padding-inline: 20px;
     border-radius: var(--d-button-border-radius);
     text-decoration: none;
+  }
+
+  // #main-outlet in the selector: core sets .btn-default / .btn-primary
+  // padding at three-class specificity, which a plain rule here loses to
+  // (same workaround as the community header's buttons).
+  #main-outlet & .btn {
+    padding-inline: 20px;
   }
 
   // The plain button gets the card hairline, so it reads as a button next to
