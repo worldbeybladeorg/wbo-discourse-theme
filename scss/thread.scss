@@ -411,12 +411,15 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
   }
 
   // The Watching / Tracking control: an outlined pill, not a tonal button.
-  .notifications-tracking-trigger-btn,
-  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+  // (#main-outlet: core sizes this button with a rule that carries an ID, so
+  // a class-only rule left it at core's 36px with 8px sides.)
+  #main-outlet & .notifications-tracking-trigger-btn,
+  .discourse-no-touch #main-outlet & .notifications-tracking-trigger-btn:hover {
     // (Size via the button rule's custom properties too, common.scss.)
     --wbo-btn-pad-block: 8px;
     --wbo-btn-pad-inline: 14px;
     gap: 8px;
+    height: auto;
     padding-block: 8px;
     padding-inline: 14px;
     border: 1px solid var(--redditish-border-color);
@@ -428,7 +431,7 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
     text-transform: none;
   }
 
-  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+  .discourse-no-touch #main-outlet & .notifications-tracking-trigger-btn:hover {
     border-color: var(--redditish-border-highlight-color);
     opacity: 1;
   }
