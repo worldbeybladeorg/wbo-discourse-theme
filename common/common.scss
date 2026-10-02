@@ -226,7 +226,16 @@ body {
 // dropdown headers, and the rows of dropdown menus. Styled as WBO buttons they
 // came out bold, stretched and capitalised, and lost core's own hover. Every
 // button rule below skips this list, so those keep core's plain styling.
-$wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link, [class*='popup-menu-btn'], .select-kit-header, .dropdown-menu__item *";
+//
+// The admin panel is on the list whole (`.admin-interface *`): it is laid out
+// around Discourse's own compact buttons, and the WBO plain button (no border,
+// no fill) read there as bold text rather than a button. Admin keeps stock
+// Discourse buttons, corner radius included.
+$wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link, [class*='popup-menu-btn'], .select-kit-header, .dropdown-menu__item *, .admin-interface *";
+
+.admin-interface {
+  --d-button-border-radius: var(--d-border-radius);
+}
 
 // Core sets `padding-block` / `padding-inline` longhands PLUS
 // `height: var(--d-control-height)` at higher specificity, so the old
@@ -252,7 +261,7 @@ $wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link,
 
 // Icons inside text-bearing buttons should be the same colour as the
 // button's text (icon-only buttons keep their own icon colours).
-.btn:not(.no-text) .d-icon {
+.btn:not(.no-text, .admin-interface *) .d-icon {
   color: inherit;
 }
 
@@ -263,7 +272,7 @@ $wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link,
 // icon flipped dark on hover while the label stayed light. Re-assert
 // inherit on hover at higher specificity so the icon keeps matching the
 // text in both states.
-.discourse-no-touch .btn:not(.no-text):hover .d-icon {
+.discourse-no-touch .btn:not(.no-text, .admin-interface *):hover .d-icon {
   color: inherit;
 }
 
@@ -501,7 +510,7 @@ h1 {
 
 // Default (unaccented) buttons have nothing to fade toward, so they take a
 // foreground wash on hover instead.
-.discourse-no-touch .btn-default:hover {
+.discourse-no-touch .btn-default:not(.admin-interface *):hover {
   background-color: rgba(var(--wbo-fg-rgb), 0.1) !important;
   opacity: 1;
 }
