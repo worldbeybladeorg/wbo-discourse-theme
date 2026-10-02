@@ -364,9 +364,9 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     gap: 0.5em;
   }
 
-  // Phones: the tabs are even columns across the whole band (three on the
-  // top-level pages, two on a category or tag page), labels centred, like an
-  // app's tab bar. Tablets keep them packed at the left, like the desktop
+  // Phones: the tabs are even columns across the band, inside its padding so
+  // they line up with the buttons above (three on the top-level pages, two on
+  // a category or tag page), labels centred, like an app's tab bar. Tablets keep them packed at the left, like the desktop
   // tabs, with the active underline starting at the column edge.
   &__tabs {
     display: flex;
@@ -382,7 +382,6 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
       grid-auto-columns: minmax(max-content, 1fr);
       grid-auto-flow: column;
       gap: 0;
-      margin-inline: -16px; // the band's own padding
     }
   }
 
@@ -490,7 +489,7 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   &__sort-menu {
     position: absolute;
     top: calc(100% + 6px);
-    left: 8px;
+    left: 0;
     text-align: left;
     z-index: 10;
     min-width: 180px;
