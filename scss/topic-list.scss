@@ -26,6 +26,10 @@ body.category,
 // rule above and core's ID-carrying button rules.
 html body .navigation-container .navigation-controls:has(.dismiss-read) {
   position: static;
+
+  // Drop the pinned version's z-index too: it still applies to a flex item,
+  // and it lifted the button above the header's open sort menu.
+  z-index: auto;
   display: flex;
   align-items: center;
   margin-left: auto;
