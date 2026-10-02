@@ -37,7 +37,7 @@
 // list -- table, muted section -- is hidden: everything else in its container
 // but the card list and the "new topics" notice.
 .categories-list #list-area .contents {
-  > :not(.above-discovery-categories-outlet, .show-more) {
+  > :not(.wbo-category-list, .show-more) {
     display: none;
   }
 }
