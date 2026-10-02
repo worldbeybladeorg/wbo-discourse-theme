@@ -22,9 +22,9 @@ about_text:
   default: "World Beyblade Organization is a non-profit project to connect the Beyblade community and support independent, fan-run Beyblade events."
   description: "About panel: the description at the top (right sidebar on desktop, About tab on mobile)."
 
-about_footnote:
-  default: "Run by Fighting Spirits Inc., a registered nonprofit."
-  description: "About panel: the small line under the description. Leave blank to hide."
+active_since:
+  default: "2008"
+  description: "About panel: the year shown under \"Active since\". Leave blank to hide."
 
 discord_invite_url:
   default: "https://discord.gg/92vf8usw"

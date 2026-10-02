@@ -3,6 +3,7 @@ import { tracked } from "@glimmer/tracking";
 import { service } from "@ember/service";
 import { htmlSafe } from "@ember/template";
 import icon from "discourse/helpers/d-icon";
+import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 
@@ -75,6 +76,21 @@ async function fetchOnlineCount(serverId) {
   return inFlight;
 }
 
+// The forum's total post count, from Discourse's own /about page data.
+// Fetched once per page load and shared by every panel instance; if the
+// request fails (or stats are hidden from this viewer) the stat shows a dash.
+let postsCountRequest = null;
+
+function fetchPostsCount() {
+  postsCountRequest ??= ajax("/about.json")
+    .then((data) => {
+      const n = data?.about?.stats?.posts_count;
+      return Number.isFinite(n) ? n : null;
+    })
+    .catch(() => null);
+  return postsCountRequest;
+}
+
 // The community "About" content: description, Discord box (with the live
 // online count), rules. Right sidebar on wide screens; the About tab on
 // narrow ones (@mobile), which also lists the categories. Copy comes from
@@ -83,9 +99,15 @@ export default class WboAboutPanel extends Component {
   @service site;
 
   @tracked onlineCount = null;
+  @tracked postsCount = null;
 
   constructor() {
     super(...arguments);
+    fetchPostsCount().then((n) => {
+      if (!this.isDestroying && !this.isDestroyed) {
+        this.postsCount = n;
+      }
+    });
     const serverId = (settings.discord_server_id || "").trim();
     if (serverId) {
       fetchOnlineCount(serverId).then((n) => {
@@ -125,6 +147,14 @@ export default class WboAboutPanel extends Component {
     });
   }
 
+  get activeSince() {
+    return (settings.active_since || "").trim();
+  }
+
+  get postsLabel() {
+    return this.postsCount === null ? "–" : this.postsCount.toLocaleString();
+  }
+
   get rules() {
     return (settings.rules || []).filter((r) => r?.title);
   }
@@ -136,9 +166,18 @@ export default class WboAboutPanel extends Component {
           {{i18n (themePrefix "about_panel.about_heading")}}
         </h2>
         <p class="wbo-about__text">{{settings.about_text}}</p>
-        {{#if settings.about_footnote}}
-          <p class="wbo-about__muted">{{settings.about_footnote}}</p>
-        {{/if}}
+        <dl class="wbo-about__stats">
+          {{#if this.activeSince}}
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.active_since")}}</dt>
+              <dd>{{this.activeSince}}</dd>
+            </div>
+          {{/if}}
+          <div class="wbo-about__stat">
+            <dt>{{i18n (themePrefix "about_panel.total_posts")}}</dt>
+            <dd>{{this.postsLabel}}</dd>
+          </div>
+        </dl>
       </section>
 
       {{#if this.discordUrl}}

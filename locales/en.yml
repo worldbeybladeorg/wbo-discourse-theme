@@ -21,6 +21,8 @@ en:
     categories_heading: "Categories"
     join_discord: "Join our Discord"
     online_now: "%{count} online"
+    active_since: "Active since"
+    total_posts: "Total posts"
   community_header:
     create_topic: "Create topic"
     discord: "Discord"

@@ -123,6 +123,36 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     font-size: var(--font-down-1);
   }
 
+  // Two stats side by side: a small uppercase label over the value (the
+  // same micro-label as .um-eyebrow in the user menu).
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+    margin: 0.25em 0 0;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    dt {
+      color: var(--wbo-muted);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 0;
+      font-size: var(--font-up-1);
+      font-weight: 600;
+    }
+  }
+
   // Heading on the left, "X online" on the right of the same row.
   // The two texts differ in size, so they share a baseline rather than a
   // centre line.
