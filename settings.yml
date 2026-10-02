@@ -16,6 +16,10 @@ wp_base_url:
   default: "https://worldbeyblade.org"
   description: "WordPress site URL (no trailing slash). Used for the logo link, the account panel's links, and its data (/wp-json/wbo/v1/user-menu). Set to https://wbo.local on the local dev instance."
 
+about_heading:
+  default: "About WBO Community"
+  description: "About panel: heading of the first box (right sidebar on desktop, About tab on mobile)."
+
 about_text:
   type: string
   textarea: true
@@ -37,6 +41,10 @@ discord_server_id:
 discord_heading:
   default: "Discord"
   description: "About panel (right sidebar and mobile About tab): heading of the Discord box."
+
+rules_heading:
+  default: "Community Rules"
+  description: "About panel: heading of the rules box."
 
 rules:
   type: objects

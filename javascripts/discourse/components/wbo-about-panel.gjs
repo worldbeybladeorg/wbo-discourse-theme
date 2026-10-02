@@ -163,7 +163,7 @@ export default class WboAboutPanel extends Component {
     <div class="wbo-about">
       <section class="wbo-about__card">
         <h2 class="wbo-about__heading">
-          {{i18n (themePrefix "about_panel.about_heading")}}
+          {{settings.about_heading}}
         </h2>
         <p class="wbo-about__text">{{settings.about_text}}</p>
         <dl class="wbo-about__stats">
@@ -208,7 +208,7 @@ export default class WboAboutPanel extends Component {
       {{#if this.rules.length}}
         <section class="wbo-about__card">
           <h2 class="wbo-about__heading">
-            {{i18n (themePrefix "about_panel.rules_heading")}}
+            {{settings.rules_heading}}
           </h2>
           <ol class="wbo-about__rules">
             {{#each this.rules as |rule|}}
