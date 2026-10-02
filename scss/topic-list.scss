@@ -17,6 +17,45 @@ body.category,
   }
 }
 
+// Unread / New: the controls hold the "Dismiss…" button. Pinned to the
+// window corner (above) it sat on top of the Discord button on phones and
+// the sidebar's New topic button on desktop, so here the controls go back in
+// the flow: at the right end of the tab strip on desktop, and on their own
+// right-aligned row under the header below sidebar width (where the tab
+// strip is hidden). html/body/#main-outlet in the selectors: to out-rank the
+// rule above and core's ID-carrying button rules.
+html body .navigation-container .navigation-controls:has(.dismiss-read) {
+  position: static;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+
+  .dismiss-container-top {
+    margin: 0;
+  }
+}
+
+html body #main-outlet .navigation-controls {
+  #dismiss-topics-top,
+  #dismiss-new-top {
+    height: 32px;
+    margin: 0;
+    padding-block: 0;
+    padding-inline: 14px;
+    font-size: var(--font-down-1);
+  }
+}
+
+@media screen and (width <= 1160px) {
+  html
+    body
+    #main-outlet
+    .list-controls:has(.wbo-community-header)
+    .navigation-container:has(.dismiss-read) {
+    margin-bottom: 12px;
+  }
+}
+
 .topic-above-suggested-outlet,
 .related-messages-wrapper,
 .suggested-topics-wrapper {
