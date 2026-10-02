@@ -140,6 +140,12 @@ body.categories-list .navigation-controls {
   @include custom-card;
   @include custom-card-hover;
 
+  // (#list-area: on wide screens core gives every h2 in the list area a top
+  // and bottom margin, from a selector with that ID in it.)
+  #list-area &__name {
+    margin: 0;
+  }
+
   &__name {
     display: flex;
     align-items: center;
