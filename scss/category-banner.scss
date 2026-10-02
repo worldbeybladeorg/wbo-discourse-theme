@@ -1,5 +1,6 @@
-.custom-tag-banner,
-.custom-category-banner {
+// Tag pages only: category pages are named by a title row in the feed column
+// (components/wbo-community-header.gjs, scss/community.scss).
+.custom-tag-banner {
   grid-area: category-banner;
   margin: 0 0 0 -1.5em;
 
@@ -53,6 +54,7 @@
 .custom-tag-banner {
   h1 a {
     color: var(--primary-low);
+
     // Headings are bold (700), as on WordPress.
     font-weight: 700;
 

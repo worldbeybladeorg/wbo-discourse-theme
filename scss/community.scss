@@ -1,9 +1,10 @@
 // ── Community About panel + narrow-screen community header ──────────────────
 //
-// components/wbo-about-panel.gjs: right sidebar on the top-level feeds, and
-// the About tab on narrow screens. components/wbo-community-header.gjs: the
-// Feed/About tabs (<= 1160px, where the right sidebar is hidden) plus the
-// Create topic / Discord buttons and sort menu (<= 719px, phones).
+// components/wbo-about-panel.gjs: right sidebar on the top-level feeds and
+// category pages, and the About tab on narrow screens.
+// components/wbo-community-header.gjs: the Posts/About tabs, New post /
+// Discord buttons and sort menu (<= 1160px, where the right sidebar is
+// hidden), and on category pages the title row (every width).
 // Type comes from the theme scale; this sheet sets layout and colour only.
 
 $wbo-rail-hidden-bp: 1160px; // matches the grid in common.scss
@@ -13,14 +14,68 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 // as .btn-primary (common.scss): 2px accent border + a wash of it.
 .btn.wbo-btn-discord:not(.btn-icon) {
   --btn-accent: #5865f2;
-  --btn-ink: var(--wbo-text);
+  --btn-ink: var(--wbo-btn-ink-discord);
   color: var(--btn-ink);
+  text-shadow: var(--wbo-btn-text-shadow);
+
+  .discourse-no-touch &:hover,
+  &:visited {
+    color: var(--btn-ink);
+  }
 }
 
+// Header buttons use the site's real .btn sizing and type (common.scss:
+// 10px 20px padding, ~46px, 600 weight): .btn-primary for Create topic and
+// the Discord accent (above) on the same tonal engine. Only alignment here.
+// #main-outlet in the selector: a core rule for .btn-default/.btn-primary
+// carries an ID inside its :not(), so it out-specifies any class-only rule
+// and was forcing Create topic to 36px while the Discord link was 47px.
+#main-outlet .wbo-community-header .wbo-community-header__actions .btn {
+  display: inline-flex;
+
+  // Share the row equally so the pair never wraps onto two lines on a
+  // 360-390px phone, and both pills line up with the card edges.
+  flex: 1 1 0;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45em;
+  min-width: 0;
+  height: 44px;
+  padding-block: 0;
+  padding-inline: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+
+  // A link styled as .btn doesn't get core's pill radius.
+  border-radius: var(--d-button-border-radius);
+  text-decoration: none;
+
+  // Same size for the Phosphor and Discourse icons, and no core margin on
+  // top of the flex gap.
+  .wbo-icon,
+  .d-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+}
+
+// The Discord logo on both Discord buttons (mobile header, About panel).
+#main-outlet-wrapper .wbo-btn-discord .d-icon {
+  color: var(--wbo-btn-icon-discord);
+}
+
+#main-outlet-wrapper .wbo-about .wbo-btn-discord .d-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+// Links styled as .btn don't get core's pill radius; match the buttons.
 // Longhands at three-class specificity: core sets padding-block/-inline and
-// height on .btn at higher specificity than a plain .btn rule, and a link
-// styled as .btn picks up different padding than a <button> does.
-.wbo-community-header .wbo-community-header__actions .btn,
+// height on .btn at higher specificity than a plain .btn rule.
 .wbo-about .wbo-about__card .wbo-about__button {
   display: inline-flex;
   align-items: center;
@@ -28,8 +83,6 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   height: 40px;
   padding-block: 0;
   padding-inline: 1.1em;
-
-  // Links styled as .btn don't get core's pill radius; match the buttons.
   border-radius: var(--d-button-border-radius);
   text-decoration: none;
 
@@ -38,78 +91,19 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 }
 
-// Phone header buttons (the mockup): a solid orange Create topic and an
-// outlined Discord, sentence case -- not the tonal .btn look, which read too
-// heavy stacked in a narrow header.
-.wbo-community-header .wbo-community-header__actions .btn,
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .btn:hover {
-  height: 44px;
-  border-width: 1px;
-  border-style: solid;
-  box-shadow: none;
-  font-size: var(--font-0);
-  font-weight: 700;
-  font-stretch: normal;
-  text-transform: none;
-}
-
-.wbo-community-header .wbo-community-header__actions .btn-primary,
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .btn-primary:hover {
-  border-color: transparent;
-  background: var(--wbo-orange);
-  color: #151a2c;
-
-  .wbo-icon {
-    color: #151a2c;
-  }
-}
-
-.wbo-community-header .wbo-community-header__actions .wbo-btn-discord,
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .wbo-btn-discord:hover {
-  border-color: var(--redditish-border-color);
-  background: transparent;
-  color: var(--wbo-text);
-
-  .wbo-icon {
-    color: #5865f2;
-  }
-}
-
-.discourse-no-touch
-  .wbo-community-header
-  .wbo-community-header__actions
-  .btn:hover {
-  opacity: 0.85;
-}
-
 // ── About panel ─────────────────────────────────────────────────────────────
-// One card, sections split by hairlines -- like Reddit's community sidebar.
+// Each section is its own card, spaced like the feed's topic cards.
 .wbo-about {
   display: flex;
   flex-direction: column;
-
-  @include custom-card {
-    padding: 0;
-  }
+  gap: 1em;
 
   &__card {
     display: flex;
     flex-direction: column;
     gap: 0.75em;
-    padding: 16px;
 
-    + .wbo-about__card {
-      border-top: 1px solid var(--redditish-border-color);
-    }
+    @include custom-card;
   }
 
   &__heading,
@@ -130,18 +124,59 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     font-size: var(--font-down-1);
   }
 
-  &__discord .wbo-about__muted {
-    margin-top: 0.25em;
+  // Two stats side by side: a small uppercase label over the value (the
+  // same micro-label as .um-eyebrow in the user menu).
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+    margin: 0.25em 0 0;
   }
 
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    dt {
+      color: var(--wbo-muted);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 0;
+      font-size: var(--font-up-1);
+      font-weight: 500;
+    }
+  }
+
+  // Heading on the left, "X online" on the right of the same row.
+  // The two texts differ in size, so they share a baseline rather than a
+  // centre line.
+  &__discord-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75em;
+  }
+
+  // The text sets this row's baseline; the dot opts out and centres on it
+  // (as the first item it would otherwise define the baseline itself).
   &__online {
     display: flex;
-    align-items: center;
+    flex-shrink: 0;
+    align-items: baseline;
     gap: 0.5em;
     font-weight: 600;
+    white-space: nowrap;
   }
 
   &__online-dot {
+    align-self: center;
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -169,39 +204,46 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     }
   }
 
+  // Vertical padding (not just a min-height) so a title that wraps onto two
+  // lines keeps clear of the dividers above and below it.
   &__rule {
     display: flex;
     align-items: center;
     gap: 0.75em;
+    box-sizing: border-box;
     min-height: 44px;
+    padding-block: 10px;
 
     &:is(details) {
       display: block;
+      padding-block: 0;
     }
 
     summary {
       display: flex;
       align-items: center;
       gap: 0.75em;
+      box-sizing: border-box;
       min-height: 44px;
+      padding-block: 10px;
       cursor: pointer;
       list-style: none;
 
+      // Hide both the browser's marker and core's own ▶/▼ (summary::before);
+      // the caret on the right is the toggle.
       &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::before {
+        content: none;
         display: none;
       }
     }
 
     > .wbo-about__muted {
-      margin: 0 0 0.75em 1.75em;
+      margin: -2px 0 12px;
     }
-  }
-
-  &__rule-num {
-    width: 1em;
-    flex-shrink: 0;
-    color: var(--wbo-orange-text);
-    font-weight: 700;
   }
 
   &__rule-title {
@@ -219,6 +261,45 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     }
   }
 
+  &__categories {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li + li {
+      border-top: 1px solid var(--redditish-border-color);
+    }
+  }
+
+  &__category {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75em;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0.6em 0;
+    color: var(--wbo-text);
+    text-decoration: none;
+  }
+
+  &__category-swatch {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    margin-top: 0.4em;
+    border-radius: 3px;
+  }
+
+  &__category-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__category-name {
+    font-weight: 600;
+  }
+
   &__link {
     display: inline-flex;
     align-items: center;
@@ -227,63 +308,92 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     color: var(--wbo-blue-text);
     font-weight: 600;
   }
+
+  // A category's subcategories and top tags (category pages).
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    font-size: var(--font-down-1);
+
+    a {
+      display: flex;
+    }
+
+    + .wbo-about__heading {
+      margin-top: 0.25em;
+    }
+  }
 }
 
 // ── Community header (narrow screens) ───────────────────────────────────────
 .wbo-community-header {
   display: none;
 
+  // Below sidebar width: buttons, then the Feed/About tabs and sort menu on
+  // a hairline strip (no card -- the same open strip as the desktop tabs).
+  // Phones turn it into a full-bleed band, further down.
   @media screen and (width <= $wbo-rail-hidden-bp) {
     display: flex;
     flex-direction: column;
     gap: 0.75em;
     margin-bottom: 1em;
-
-    @include custom-card {
-      padding: 12px 16px;
-    }
+    border-bottom: 1px solid var(--redditish-border-color);
   }
 
-  // The desktop "Create topic" bar sits directly above on tablets.
-  .custom-post-bar-contents + & {
-    margin-top: 1em;
-  }
-
+  // Create topic + Discord wherever the right sidebar (and its Create topic
+  // button) is hidden.
   &__actions {
-    display: none;
-
-    @media screen and (width <= $wbo-phone-bp) {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5em;
-    }
+    display: flex;
+    gap: 0.5em;
   }
 
+  // The tab strip sits on the header's bottom border, as WordPress's
+  // .browse-view-tabs sit on their strip's: top:1px lays the active tab's
+  // 2px orange marker over that hairline. The header drops its bottom
+  // padding for this (see the phone/tablet rules below).
   &__bar {
+    position: relative;
+    top: 1px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 0.5em;
   }
 
+  // On phones, pulled left by one tab's padding so "Feed" lines up with the
+  // buttons inside the band. On tablets the strip is open, so the active
+  // underline starts at the column edge, like the desktop tabs.
   &__tabs {
     display: flex;
     gap: 0.25em;
+
+    @media screen and (width <= $wbo-phone-bp) {
+      margin-left: -16px;
+    }
   }
 
+  // WordPress's .browse-view-tab (style.css) at the profile tabs' size
+  // (profile.css: 16px, 110% width): muted 600 text, 2px orange underline
+  // on the active tab.
   &__tab {
-    height: 40px;
-    padding: 0 1.1em;
+    padding: 8px 16px;
     border: 0;
-    border-radius: 100px;
-    background: transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
     color: var(--wbo-muted);
-    font: inherit;
+    font-family: inherit;
+    font-size: 16px;
     font-weight: 600;
+    font-stretch: 110%;
     cursor: pointer;
+    transition:
+      color var(--wbo-transition),
+      border-color var(--wbo-transition);
 
     &[aria-selected="true"] {
-      background: rgb(var(--wbo-fg-rgb), 0.08);
+      border-bottom-color: var(--wbo-orange);
       color: var(--wbo-text);
     }
 
@@ -293,34 +403,282 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   }
 
   &__sort {
-    display: none;
+    position: relative;
+  }
 
-    @media screen and (width <= $wbo-phone-bp) {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25em;
-      height: 40px;
-      padding: 0 0.5em;
-      color: var(--wbo-muted);
-      font-size: var(--font-down-1);
+  // Same type and box as the Feed/About tabs.
+  // Same type as the tabs, without the underline.
+  &__sort-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 8px 0 10px 16px;
+    border: 0;
+    background: none;
+    color: var(--wbo-muted);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    font-stretch: 110%;
+    cursor: pointer;
+
+    &[aria-expanded="true"],
+    .discourse-no-touch &:hover {
+      color: var(--wbo-text);
+    }
+
+    .wbo-icon {
+      transition: transform 0.15s;
+    }
+
+    &[aria-expanded="true"] .wbo-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__sort-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 10;
+    min-width: 180px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border: 1px solid var(--redditish-border-color);
+    border-radius: var(--wbo-card-radius);
+    background: var(--secondary);
+    box-shadow: 0 8px 24px var(--wbo-shadow-color);
+  }
+
+  &__sort-item {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--wbo-text);
+    font-weight: 500;
+    text-decoration: none;
+
+    // Visited links must not go blue (a:visited out-specifies one class).
+    &:visited {
+      color: var(--wbo-text);
+    }
+
+    .discourse-no-touch &:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.06);
+      color: var(--wbo-text);
+    }
+
+    &.active,
+    &.active:visited {
+      background: color-mix(in srgb, var(--wbo-orange) 12%, transparent);
+      color: var(--wbo-orange-text);
       font-weight: 600;
-
-      // Invisible, covering the label: tapping opens the native picker.
-      select {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        opacity: 0;
-        cursor: pointer;
-      }
     }
   }
 
   &__about {
     margin-bottom: 1em;
+  }
+
+  // ── Category pages: the title row ─────────────────────────────────────────
+  // The category's colour square (or its icon / emoji) and its name, in place
+  // of the old full-width colour banner. 44px tall, the height of the
+  // sidebar's New post button, which it sits level with.
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+  }
+
+  &__swatch {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: var(--wbo-muted);
+  }
+
+  &__mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    color: var(--wbo-muted);
+
+    .d-icon,
+    .emoji {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+    }
+  }
+
+  // Headings are bold (700) at 110% width, as on WordPress.
+  &__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--font-up-5);
+    font-weight: 700;
+    font-stretch: 110%;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+
+    @media screen and (width <= $wbo-phone-bp) {
+      font-size: var(--font-up-3);
+    }
+  }
+
+  // Watching + the sidebar star: in the title row only where the right
+  // sidebar shows (below that, Watching is the second header button and
+  // there is no left sidebar to add to).
+  &__rail-only {
+    display: none;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// The title row's controls. #main-outlet in the selectors: core sets .btn
+// padding and height at three-class specificity (see the header buttons
+// above).
+//
+// Watching / Tracking: the same outlined pill as on a topic page
+// (scss/thread.scss), not a tonal button.
+#main-outlet .wbo-community-header__title {
+  .notifications-tracking-trigger-btn,
+  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    gap: 8px;
+    height: auto;
+    padding-block: 8px;
+    padding-inline: 14px;
+    border: 1px solid var(--redditish-border-color);
+    background: var(--secondary);
+    box-shadow: none;
+    color: var(--wbo-label);
+    font-size: var(--font-down-1);
+    text-shadow: none;
+    text-transform: none;
+  }
+
+  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    border-color: var(--redditish-border-highlight-color);
+    opacity: 1;
+  }
+
+  // The star and the staff-only settings wrench: quiet round icon buttons.
+  .add-to-sidebar.btn,
+  .wbo-community-header__settings.btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+
+    .d-icon {
+      margin: 0;
+    }
+
+    .discourse-no-touch &:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.08);
+    }
+  }
+
+  .wbo-community-header__settings.btn {
+    color: var(--wbo-muted);
+
+    .d-icon {
+      color: inherit;
+    }
+
+    .discourse-no-touch &:hover {
+      color: var(--wbo-text);
+    }
+
+    // A full-size tap target on phones, without growing the row.
+    @media screen and (width <= $wbo-phone-bp) {
+      width: 44px;
+      height: 44px;
+      margin: -4px -12px -4px 0;
+    }
+  }
+}
+
+// The title row has the settings button, so core's own wrench (pinned to the
+// top-right corner of the window, scss/topic-list.scss) goes.
+body:has(.wbo-community-header--category) .navigation-controls .edit-category {
+  display: none;
+}
+
+// Where the right sidebar shows, a category page's header is the title row
+// alone: New post is at the top of the sidebar and the filters are
+// Discourse's own tabs, directly under the title.
+@media screen and (width > $wbo-rail-hidden-bp) {
+  .wbo-community-header.wbo-community-header--category {
+    display: flex;
+    flex-direction: column;
+
+    .wbo-community-header__actions,
+    .wbo-community-header__bar {
+      display: none;
+    }
+
+    .wbo-community-header__rail-only {
+      display: inline-flex;
+    }
+  }
+
+  // (The outlet is otherwise dropped at this width, see below.)
+  .list-controls .custom-post-bar:has(.wbo-community-header--category) {
+    display: block;
+  }
+
+  // Title, then the tabs 12px under it; the tab strip doesn't need the 44px
+  // it has on the feeds (where it stands level with the sidebar's button).
+  .list-controls:has(.wbo-community-header--category) {
+    gap: 12px;
+
+    #navigation-bar.nav-pills {
+      min-height: 0;
+    }
+  }
+}
+
+// Phones: the header is a full-bleed band directly under the site nav, like
+// Reddit's community header, not a floating card. The side margins cancel
+// .wrap's padding (core's --d-wrap-padding-x); the -16px top margin brings
+// it up flush under the nav bar.
+@media screen and (width <= $wbo-phone-bp) {
+  #main-outlet .wbo-community-header {
+    margin: -16px calc(-1 * var(--d-wrap-padding-x)) 1em;
+    padding: 12px 16px 0;
+    background: var(--secondary);
+  }
+
+  // Discourse's own phone layout (edge-to-edge page with --d-wrap-padding-x
+  // either side) stops at 640px, but this theme's phone layout runs to
+  // 719px. In between, the feed was a centred 640px column with wider side
+  // margins, so the band above fell short of the left edge and overshot the
+  // right. Use the same edge-to-edge page for the whole phone range.
+  // (html + the attribute selector: to out-rank the grid rules in
+  // common.scss.)
+  html
+    body[class*="navigation-"]:has(.wbo-community-header)
+    #main-outlet-wrapper {
+    grid-template-columns: auto 0 minmax(0, 1fr) 0 auto;
+    gap: 0;
+    padding-inline: var(--d-wrap-padding-x);
+
+    #main-outlet {
+      max-width: none;
+    }
   }
 }
 
@@ -333,6 +691,17 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
       display: none !important;
     }
   }
+
+  // The header's Feed/About tabs and sort menu replace Discourse's
+  // navigation bar on the feeds it covers -- at every width below the
+  // sidebar, so tablets don't get two rows of tabs.
+  .list-controls:has(.wbo-community-header) #navigation-bar {
+    display: none;
+  }
+
+  .list-controls:has(.wbo-community-header) {
+    gap: 0;
+  }
 }
 
 @media screen and (width <= $wbo-phone-bp) {
@@ -342,43 +711,83 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     display: none;
   }
 
-  // The header's sort menu replaces Discourse's navigation bar, and its
-  // Create topic button replaces the floating one, on the feeds it covers.
-  .list-controls:has(.wbo-community-header) #navigation-bar {
-    display: none;
-  }
-
-  .list-controls:has(.wbo-community-header) {
-    gap: 0;
-  }
-
+  // The header's Create topic button replaces the floating one on the feeds
+  // it covers...
+  // ...until it scrolls out of view: then the floating one comes back
+  // (wbo-community-header.gjs toggles the body class).
+  // Shown: pops in with a slight overshoot. The transition on each state is
+  // the one used when entering it, so enter and exit can differ.
   body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create {
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      visibility 0s,
+      background 0.15s,
+      box-shadow 0.15s;
+  }
+
+  // Hidden: shrinks and fades out quickly, then turns invisible so it can't
+  // be tapped or focused.
+  body:has(.wbo-community-header .btn-primary):not(.wbo-header-create-offscreen)
+    .wbo-bottom-bar__create {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+    visibility: hidden;
+    transition:
+      opacity 0.15s ease-in,
+      transform 0.15s ease-in,
+      visibility 0s 0.15s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body:has(.wbo-community-header .btn-primary) .wbo-bottom-bar__create,
+    body:has(.wbo-community-header .btn-primary):not(
+        .wbo-header-create-offscreen
+      )
+      .wbo-bottom-bar__create {
+      transform: none;
+      transition-duration: 0.01s;
+    }
+  }
+}
+
+// Where "Create topic" lives: the community header's button on the
+// top-level feeds below 1160px, and the button at the top of the right
+// sidebar above it (sidebar-welcome.gjs). So the old fake-input bar is hidden
+// on those feeds at every width, and on all pages once the sidebar shows
+// (category pages have the create button in their About card). It remains
+// only on category/tag pages between phone and sidebar widths.
+.custom-post-bar:has(.wbo-community-header) .custom-post-bar-contents {
+  display: none;
+}
+
+// Above sidebar width nothing in the outlet is visible (the header and the
+// bar are both hidden), so drop the outlet itself -- otherwise its empty box
+// plus .list-controls' gap pushed the tabs ~16px down.
+@media screen and (width > $wbo-rail-hidden-bp) {
+  .list-controls .custom-post-bar {
     display: none;
   }
 }
 
-// Desktop: the "Create topic" bar and the filter pills read as one card (the
-// mockup), and the fake field is pill-shaped on the page colour. Only where
-// nothing sits between them -- on tablets the Feed/About tabs do.
-@media screen and (width > $wbo-rail-hidden-bp) {
-  .list-controls:has(.custom-post-bar-contents) {
-    gap: 0;
+// Top of the right sidebar on the feeds: the same Create topic button as the
+// phone header (.btn-primary), full width. The sidebar sits in
+// #main-outlet-wrapper (not #main-outlet), and the ID is needed to beat
+// core's ID-carrying .btn-primary height rule.
+#main-outlet-wrapper .custom-right-sidebar .wbo-rail-create.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45em;
+  width: var(--wbo-rail-width);
+  height: 44px;
+  padding-block: 0;
+  white-space: nowrap;
 
-    .custom-post-bar-contents {
-      border-bottom: 0;
-      border-radius: var(--wbo-card-radius) var(--wbo-card-radius) 0 0;
-      padding-bottom: 8px;
-
-      &:hover {
-        border-color: var(--redditish-border-color);
-      }
-    }
-
-    #navigation-bar {
-      border-top: 0;
-      border-radius: 0 0 var(--wbo-card-radius) var(--wbo-card-radius);
-      padding-top: 8px;
-    }
+  .wbo-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -387,4 +796,93 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
   padding-inline: 16px;
   border-radius: 100px;
   background: var(--wbo-bg);
+}
+
+// Drafts link beside the fake field (fake-input-create.gjs): a pill with
+// the draft count, matching the field.
+.custom-post-bar-contents .wbo-drafts-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.35em;
+  height: 44px;
+  margin-left: 0.5em;
+  padding: 0 0.9em;
+  border: 1px solid var(--redditish-border-color);
+  border-radius: 100px;
+  color: var(--wbo-label);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--redditish-border-highlight-color);
+    color: var(--wbo-text);
+  }
+
+  &__count {
+    font-size: var(--font-down-1);
+  }
+}
+
+// Core gives .navigation-container a 12px bottom margin. On desktop it
+// stacked on the tab strip's own 16px; on phones (where the strip is hidden
+// under the community header) it left the feed 12px further down than the
+// About tab's panel. Drop it at every width.
+#main-outlet .list-controls .navigation-container {
+  margin-bottom: 0;
+}
+
+// Desktop feed filters (Discourse's #navigation-bar: Latest, Unread, Hot…)
+// as a WordPress .browse-view-tabs strip, outside any card: muted 600 text
+// at 16px / 110% width on the page, a 1px hairline under the row, and a 2px
+// orange underline on the active filter laid over it (top: 1px). Phones keep
+// their own header, so this stops at the phone breakpoint.
+@media screen and (width > $wbo-phone-bp) {
+  // 44px tall, the height of the sidebar's Create topic button, so the
+  // first topic card starts exactly level with the sidebar's About card
+  // (both 16px below a 44px row).
+  #navigation-bar.nav-pills {
+    box-sizing: border-box;
+    align-items: flex-end;
+    min-height: 44px;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--redditish-border-color);
+    border-radius: 0;
+    background: none;
+
+    > li {
+      position: relative;
+      top: 1px;
+      margin: 0;
+    }
+
+    > li > a {
+      height: auto;
+      padding: 8px 16px;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      background: none;
+      color: var(--wbo-muted);
+      font-size: 16px;
+      font-weight: 600;
+      font-stretch: 110%;
+      transition:
+        color var(--wbo-transition),
+        border-color var(--wbo-transition);
+
+      &:not(.active):hover {
+        background: none;
+        color: var(--wbo-text);
+      }
+
+      &.active {
+        border-bottom-color: var(--wbo-orange);
+        background: none;
+        color: var(--wbo-text);
+      }
+    }
+  }
 }

@@ -54,23 +54,11 @@ body.category,
   display: none !important;
 }
 
-#topic-title,
-.posts-wrapper,
 .topic-list-bottom .footer-message,
 .search-container .search-advanced .search-info,
 .search-container .search-advanced .search-results,
 .search-container .search-header {
   padding: 1em 1.5em;
-}
-
-.posts-wrapper {
-  padding-bottom: 1.5em;
-}
-
-.topic-owner {
-  &.topic-post article {
-    border: none;
-  }
 }
 
 .navigation-categories #main-outlet .list-controls {
@@ -89,8 +77,7 @@ body.category,
   color: var(--primary);
 }
 
-.custom-tag-banner,
-.custom-category-banner {
+.custom-tag-banner {
   width: calc(100% + 1.5em);
   margin-left: -0.75em;
 }
@@ -213,22 +200,6 @@ html:not(.footer-nav-visible) #topic-progress-wrapper {
   #topic-progress .nums {
     position: relative;
   }
-}
-
-// Card padding was calibrated for desktop reading width (~640-900px).
-// On a 375px mobile viewport, 24px sides eat ~13% of the width for
-// empty space and squeeze the actual body copy uncomfortably. Halve it
-// on mobile.
-.posts-wrapper,
-#topic-title {
-  padding-inline: 1em;
-}
-
-// The wrapper's 24px bottom padding left too much empty space below the
-// last post's reply row (which itself already has ~8px beneath it).
-// Trim it.
-.posts-wrapper {
-  padding-bottom: 0.75em;
 }
 
 // Wrench admin button. Real markup (verified): it's the FIRST child of

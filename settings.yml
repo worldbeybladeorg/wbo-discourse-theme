@@ -16,31 +16,35 @@ wp_base_url:
   default: "https://worldbeyblade.org"
   description: "WordPress site URL (no trailing slash). Used for the logo link, the account panel's links, and its data (/wp-json/wbo/v1/user-menu). Set to https://wbo.local on the local dev instance."
 
+about_heading:
+  default: "About WBO Community"
+  description: "About panel: heading of the first box (right sidebar on desktop, About tab on mobile)."
+
 about_text:
   type: string
   textarea: true
   default: "World Beyblade Organization is a non-profit project to connect the Beyblade community and support independent, fan-run Beyblade events."
   description: "About panel: the description at the top (right sidebar on desktop, About tab on mobile)."
 
-about_footnote:
-  default: "Run by Fighting Spirits Inc., a registered nonprofit."
-  description: "About panel: the small line under the description. Leave blank to hide."
+active_since:
+  default: "2008"
+  description: "About panel: the year shown under \"Active since\". Leave blank to hide."
 
 discord_invite_url:
   default: "https://discord.gg/92vf8usw"
-  description: "Discord invite link used by the About panel's Join button and the mobile header's Discord button. Use a permanent (never-expiring) invite. Leave blank to hide both."
+  description: "Discord invite link for the About panel's Join button and the mobile header's Discord button. Use a permanent (never-expiring) invite. Leave blank to hide both."
 
 discord_server_id:
   default: "620289759171969096"
   description: "Discord server ID, for the live \"online now\" count. Needs Server Widget enabled in the Discord server settings. Leave blank to hide the count."
 
 discord_heading:
-  default: "Chat live with other bladers"
-  description: "About panel: heading of the Discord box."
+  default: "Discord"
+  description: "About panel (right sidebar and mobile About tab): heading of the Discord box."
 
-discord_description:
-  default: "Trades, combos and event meetups on Discord."
-  description: "About panel: line under the Discord heading."
+rules_heading:
+  default: "Community Rules"
+  description: "About panel: heading of the rules box."
 
 rules:
   type: objects
@@ -59,16 +63,8 @@ rules:
         required: true
       detail:
         type: string
-  description: "About panel: the short forum rules list. The full rules live on the guidelines page (rules_url); update both when the rules change."
+  description: "About panel (right sidebar and the mobile About tab): the short forum rules list. The full rules live on the guidelines page (rules_url); update both when the rules change."
 
 rules_url:
   default: "/guidelines"
   description: "About panel: where \"Read all rules\" goes."
-
-support_url:
-  default: "https://worldbeyblade.org/support/"
-  description: "About panel: where \"Open a support ticket\" goes. Leave blank to hide the help section."
-
-support_text:
-  default: "Questions about your account, an event, or another member? Our staff answer through support tickets."
-  description: "About panel: the line above the support button."

@@ -230,19 +230,57 @@ div.education {
   }
 
   &_image {
+    --wbo-thumb-max-h: 500px;
+    position: relative;
     width: 100%;
     margin: 0.25em 0 0.75em;
+    overflow: hidden;
+    border-radius: var(--wbo-radius);
 
+    // On phones a full-height image let only ~1.5 topics fit on screen.
+    @media screen and (width <= 719px) {
+      --wbo-thumb-max-h: 260px;
+    }
+
+    // The <img> box is exactly the picture: full width, unless that would
+    // make it taller than the cap, in which case it is the cap's height and
+    // centred. (--wbo-thumb-ratio = width / height, set inline by item.gjs.)
+    // Its own opaque background keeps a transparent PNG on the card colour.
     img {
-      width: 100%;
+      position: relative;
+      display: block;
+      width: min(100%, calc(var(--wbo-thumb-max-h) * var(--wbo-thumb-ratio)));
       height: auto;
-      max-height: 500px;
-      object-fit: contain;
+      margin: 0 auto;
+      aspect-ratio: var(--wbo-thumb-ratio);
+      background: var(--secondary);
+    }
 
-      // On phones a full-height image let only ~1.5 topics fit on screen.
-      @media screen and (width <= 719px) {
-        max-height: 260px;
-      }
+    // No ratio available: the old behaviour (letterboxed inside the box).
+    &:not([style]) img {
+      width: 100%;
+      max-height: var(--wbo-thumb-max-h);
+      aspect-ratio: auto;
+      object-fit: contain;
+    }
+
+    // A capped (tall, narrow) picture leaves empty bands either side. Fill
+    // them with a blurred, faded copy of the same image (like Reddit). Faded
+    // with opacity so it takes on the card colour: dim on dark, pale on
+    // light. It sits behind the opaque picture, so it only ever shows in the
+    // bands; a full-width picture covers it completely.
+    img.custom-topic-layout_image-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      aspect-ratio: auto;
+      background: none;
+      object-fit: cover;
+      filter: blur(24px);
+      opacity: 0.5;
+      transform: scale(1.2); // hide the blur's soft edges
     }
   }
 
@@ -395,5 +433,59 @@ div.education {
 .category-boxes-with-topics .category-box {
   .category-logo.aspect-image img {
     margin-left: 0;
+  }
+}
+
+// ── "See N new or updated topics" ───────────────────────────────────────────
+// Core floats this over the top of the list (absolute), which in the card
+// layout landed on the first card's category line. Here it takes its own row
+// above the first card, as a pill on the tonal button engine (blue accent),
+// and sticks under the nav while scrolling so it's reachable further down.
+// #list-area in the selector matches core's own (ID-carrying) rules.
+#main-outlet #list-area .show-more.has-topics {
+  position: sticky;
+  top: calc(var(--header-offset) + 12px);
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: auto;
+  margin: 0 0 16px;
+  transform: none;
+  animation: none;
+  pointer-events: none; // only the pill itself takes taps
+
+  .alert.alert-info.clickable {
+    position: relative;
+    inset: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 20px;
+    border: 2px solid var(--wbo-blue);
+    border-radius: 100px;
+
+    // Opaque (mixed into the card surface, not transparent) because it
+    // floats over cards once stuck.
+    background: color-mix(
+      in srgb,
+      var(--wbo-blue) var(--wbo-btn-fill-rest),
+      var(--wbo-surface)
+    );
+    box-shadow: 0 4px 14px var(--wbo-shadow-color);
+    color: var(--wbo-btn-ink-secondary);
+    font-size: var(--font-0);
+    font-weight: 600;
+    font-stretch: 110%;
+    text-shadow: var(--wbo-btn-text-shadow);
+    pointer-events: auto;
+
+    &::before {
+      content: "↑";
+    }
   }
 }

@@ -11,6 +11,11 @@
   --d-nav-underline-height: 0;
   --wbo-card-radius: 10px;
 
+  // Topic pages: the posts column is as wide as the feed (832px, see the
+  // feed grid below); the timeline keeps core's 8em beside it.
+  --wbo-thread-max-width: 832px;
+  --wbo-thread-rail: 128px;
+
   // Topic titles in lists: 550 at 110% width, like WordPress's event card
   // titles. Pinned for read and unread so state doesn't change the weight.
   --topic-title-font-weight: 550;
@@ -56,13 +61,32 @@ body {
   }
 }
 
+// Everything on a topic page that lines up with the posts: the title card,
+// the footer row, "more topics". The posts themselves sit in the middle column
+// of .container.posts' grid (scss/thread.scss): centred, as wide as the feed,
+// with the timeline's rail to the right. This resolves to that column's left
+// edge and width from the same two numbers, so the blocks stack flush.
 @mixin custom-topic-width {
-  width: calc(100% - 8em);
+  box-sizing: border-box;
+  width: min(
+    var(--wbo-thread-max-width),
+    calc(100% - var(--wbo-thread-rail))
+  );
+  margin-left: max(
+    0px,
+    min(
+      calc(100% - var(--wbo-thread-max-width) - var(--wbo-thread-rail)),
+      calc((100% - var(--wbo-thread-max-width)) / 2)
+    )
+  );
 
+  // Core docks the timeline as a pill here; the column takes the full width.
   @media screen and (width <= 924px) {
     // incorrect lint rule, see: https://github.com/stylelint-scss/stylelint-config-recommended-scss/issues/369
     /* stylelint-disable-next-line no-invalid-position-declaration */
     width: 100%;
+    /* stylelint-disable-next-line no-invalid-position-declaration */
+    margin-left: 0;
   }
 }
 
@@ -84,6 +108,7 @@ body {
 @import "tag";
 @import "topic";
 @import "topic-list";
+@import "thread";
 @import "user";
 @import "user-card";
 @import "wbo-site-nav";
@@ -107,14 +132,27 @@ body {
       grid-template-areas:
         "category-banner category-banner category-banner category-banner category-banner category-banner"
         "sidebar lspace content sidebar2 rspace sidebar-spacer";
-      grid-template-columns:
-        var(--d-sidebar-width) 1fr minmax(0, 640px)
-        312px 1fr var(--d-sidebar-width);
-      grid-template-rows: auto 1fr;
-      gap: 0 1.5em;
 
-      @media screen and (width <= 1500px) {
-        grid-template-columns: auto 1fr minmax(0, 640px) 312px 1fr auto;
+      // Feed + right sidebar together are as wide as the top nav's content
+      // (--wbo-page-max-width minus its two gutters = 1168px), so their outer
+      // edges line up with the logo and the bell: 832px feed + 24px + 312px
+      // sidebar. There is no column-gap here: the only gap wanted is the 24px
+      // between feed and sidebar (built into the sidebar's column, see
+      // .custom-right-sidebar below). A grid gap would also sit either side
+      // of the empty spacer columns and push the edges in by 48px. The
+      // spacers keep a minimum of one nav gutter instead.
+      grid-template-columns:
+        auto minmax(var(--wbo-page-gutter), 1fr) minmax(0, 832px)
+        calc(312px + 1.5em) minmax(var(--wbo-page-gutter), 1fr) auto;
+      grid-template-rows: auto 1fr;
+      gap: 0;
+
+      #main-outlet {
+        max-width: none; // the column sets the width
+      }
+
+      .custom-right-sidebar {
+        margin-left: 1.5em;
       }
 
       @media screen and (width <= 1160px) {
@@ -122,6 +160,11 @@ body {
           "category-banner category-banner category-banner category-banner category-banner"
           "sidebar lspace content rspace sidebar-spacer";
         grid-template-columns: auto 1fr minmax(0, 640px) 1fr auto;
+        gap: 0 1.5em;
+
+        #main-outlet {
+          max-width: 640px;
+        }
 
         .custom-right-sidebar {
           display: none;
@@ -142,6 +185,18 @@ body {
         "sidebar category-banner category-banner category-banner category-banner category-banner"
         "sidebar lspace content sidebar2 rspace sidebar-spacer";
 
+      // Discourse's left menu is showing: reserve the same width on the
+      // right so the feed sits centred under the nav -- but only out of
+      // space the feed doesn't need. The reserve grows from 0 (at 1490px,
+      // the narrowest window that fits menu + full-width feed + sidebar) to
+      // the menu's width, so the feed slides to centre as the window widens
+      // instead of jumping narrower at a breakpoint. (Without the menu
+      // nothing is reserved on either side.)
+      grid-template-columns:
+        auto minmax(var(--wbo-page-gutter), 1fr) minmax(0, 832px)
+        calc(312px + 1.5em) minmax(var(--wbo-page-gutter), 1fr)
+        clamp(0px, calc(100vw - 1490px), var(--d-sidebar-width));
+
       @media screen and (width <= 1160px) {
         grid-template-areas:
           "sidebar category-banner category-banner category-banner category-banner"
@@ -158,11 +213,36 @@ body {
   &[class*="user-"],
   &.archetype-regular {
     .custom-tag-banner,
-    .custom-category-banner,
     .custom-right-sidebar {
       display: none;
     }
   }
+}
+
+// ── Which elements get the WBO button look ─────────────────────────────────
+// Discourse builds a great many things out of .btn that are not buttons: menu
+// rows, sidebar section headings, table sort headers, dropdown headers, upload
+// drop zones, icon-only controls. So the button rules below do not start from
+// .btn. They apply only to the classes Discourse puts on real buttons, plus the
+// theme's own Discord button:
+$wbo-button: ".btn-default, .btn-primary, .btn-danger, .btn-success, .btn-social, .wbo-btn-discord";
+
+// ...and, among those, not to these. Discourse reuses the variant classes on a
+// few things that still are not buttons (icon-only triggers, select dropdown
+// headers, rows of dropdown menus, quiet buttons that also carry a variant).
+//
+// The admin panel is left out whole (`.admin-interface *`): it is laid out
+// around Discourse's own compact buttons, and the WBO plain button (no border,
+// no fill) read there as bold text rather than a button. Admin keeps stock
+// Discourse buttons, corner radius included.
+//
+// Anything new that Discourse or a plugin adds therefore looks like stock
+// Discourse until its class is added to $wbo-button, rather than being
+// restyled by accident.
+$wbo-not-a-button: ".btn-icon, .no-text, .btn-flat, .btn-transparent, .btn-link, [class*='popup-menu-btn'], .select-kit-header, .dropdown-menu__item *, .admin-interface *";
+
+.admin-interface {
+  --d-button-border-radius: var(--d-border-radius);
 }
 
 // Core sets `padding-block` / `padding-inline` longhands PLUS
@@ -170,27 +250,22 @@ body {
 // `padding: 0.5em 1em` shorthand rendered no visible change. Use the
 // longhands here and unset height so the padding actually determines
 // the button box. ~46px tall matches WordPress .btn.
-.btn-default,
-.btn-primary,
-.btn {
-  &:not(
-    .btn-icon,
-    [class*="popup-menu-btn"],
+:is(#{$wbo-button}):not(
+    #{$wbo-not-a-button},
     [class*="post-action-menu__"],
     [class*="topic-map__"]
   ) {
-    padding-block: 10px;
-    padding-inline: 20px;
-    height: auto;
-    // Match the WP button typography for a coherent site-wide feel.
-    font-weight: 600;
-    text-transform: capitalize;
-  }
+  padding-block: 10px;
+  padding-inline: 20px;
+  height: auto;
+  // Match the WP button typography for a coherent site-wide feel.
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 // Icons inside text-bearing buttons should be the same colour as the
 // button's text (icon-only buttons keep their own icon colours).
-.btn:not(.no-text) .d-icon {
+.btn:not(.no-text, .admin-interface *) .d-icon {
   color: inherit;
 }
 
@@ -201,11 +276,13 @@ body {
 // icon flipped dark on hover while the label stayed light. Re-assert
 // inherit on hover at higher specificity so the icon keeps matching the
 // text in both states.
-.discourse-no-touch .btn:not(.no-text):hover .d-icon {
+.discourse-no-touch .btn:not(.no-text, .admin-interface *):hover .d-icon {
   color: inherit;
 }
 
-.btn[class*="popup-menu-btn"] {
+// (Not menu rows: there it would leave the one row with this class 1px out of
+// line with its neighbours, which keep core's transparent border.)
+.btn[class*="popup-menu-btn"]:not(.dropdown-menu__item *) {
   border: none;
 }
 
@@ -237,17 +314,14 @@ body {
   padding-left: 0;
 }
 
-// Section headers ("Categories", "Tags") are .btn elements, so they picked up
-// the tonal button fill and light-mode lift and read as floating chips. They
-// are headings, not buttons: flat.
-.sidebar-wrapper .sidebar-section-wrapper .sidebar-section-header,
-.discourse-no-touch
-  .sidebar-wrapper
-  .sidebar-section-wrapper
-  .sidebar-section-header:hover {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
+// Section headings ("Categories", "Tags"; "Reports", "Appearance" in the admin
+// menu) in sentence case at 600, like the site's other small headings, rather
+// than core's uppercase letterspaced label. (They are quiet .btn elements, so
+// the button rules above already leave them alone.)
+.sidebar-wrapper .sidebar-section-wrapper .sidebar-section-header {
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .sidebar-section-link-wrapper button {
@@ -392,7 +466,7 @@ h1 {
 //   border-color: the accent (2px for prominence, matches WP)
 //   background:   the mixed fill
 
-.btn:not(.btn-icon, [class*="popup-menu-btn"]) {
+:is(#{$wbo-button}):not(#{$wbo-not-a-button}) {
   --btn-accent: transparent;
   --btn-fill: var(--wbo-btn-fill-rest);
   --btn-ink: var(--wbo-text);
@@ -412,7 +486,7 @@ h1 {
   font-stretch: 110%;
 }
 
-.btn:not(.btn-icon, [class*="popup-menu-btn"], .btn-flat, .btn-link) {
+:is(#{$wbo-button}):not(#{$wbo-not-a-button}) {
   box-shadow: var(--wbo-btn-lift);
 }
 
@@ -425,7 +499,7 @@ h1 {
 // which wipes our 2px accent border and fill. WordPress's hover is just
 // `opacity: .85`; re-assert the resting look and fade it.
 .discourse-no-touch
-  .btn:not(.btn-icon, [class*="popup-menu-btn"]):hover {
+  :is(#{$wbo-button}):not(#{$wbo-not-a-button}):hover {
   border-width: 2px;
   border-style: solid;
   border-color: var(--btn-accent);
@@ -440,29 +514,29 @@ h1 {
 
 // Default (unaccented) buttons have nothing to fade toward, so they take a
 // foreground wash on hover instead.
-.discourse-no-touch .btn-default:hover {
+.discourse-no-touch .btn-default:not(.admin-interface *):hover {
   background-color: rgba(var(--wbo-fg-rgb), 0.1) !important;
   opacity: 1;
 }
 
 // Accented variants set ONLY --btn-accent and their label colour, exactly as
 // WordPress does (.btn-primary { --btn-accent: var(--orange) }).
-.btn-primary:not(.btn-icon, [class*="popup-menu-btn"]) {
+.btn-primary:not(#{$wbo-not-a-button}) {
   --btn-accent: var(--wbo-orange);
   --btn-ink: var(--wbo-btn-ink-primary);
 }
-.btn-danger:not(.btn-icon, [class*="popup-menu-btn"]) {
+.btn-danger:not(#{$wbo-not-a-button}) {
   --btn-accent: var(--wbo-danger);
   --btn-ink: var(--wbo-btn-ink-danger);
 }
-.btn-success:not(.btn-icon, [class*="popup-menu-btn"]) {
+.btn-success:not(#{$wbo-not-a-button}) {
   --btn-accent: var(--wbo-success);
   --btn-ink: var(--wbo-btn-ink-success);
 }
 
-.btn-primary:not(.btn-icon, [class*="popup-menu-btn"]),
-.btn-danger:not(.btn-icon, [class*="popup-menu-btn"]),
-.btn-success:not(.btn-icon, [class*="popup-menu-btn"]) {
+.btn-primary:not(#{$wbo-not-a-button}),
+.btn-danger:not(#{$wbo-not-a-button}),
+.btn-success:not(#{$wbo-not-a-button}) {
   color: var(--btn-ink);
   text-shadow: var(--wbo-btn-text-shadow);
 

@@ -1,20 +1,61 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { service } from "@ember/service";
+import { htmlSafe } from "@ember/template";
+import categoryLink from "discourse/helpers/category-link";
+import icon from "discourse/helpers/d-icon";
+import { ajax } from "discourse/lib/ajax";
+import { getCategoryAndTagUrl } from "discourse/lib/url";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
 
-// The Discord server widget's online count, shared by every panel instance
-// and refreshed at most every five minutes. The widget endpoint is public
-// and CORS-enabled; it 404s/403s when Server Widget is off in Discord, in
-// which case the count line simply never appears.
-const CACHE_MS = 5 * 60 * 1000;
-let cachedCount = null;
-let cachedAt = 0;
+// The Discord server widget's online count. Discord's widget endpoint is
+// public and CORS-enabled, but it intermittently answers 503 (and 403/404
+// when Server Widget is off). So:
+//   - a good count is reused for five minutes, across page loads too
+//     (localStorage), so we ask Discord far less often;
+//   - when a request fails, the last good count from the past day is shown
+//     instead of dropping the line;
+//   - with no count at all, the line simply doesn't appear.
+const FRESH_MS = 5 * 60 * 1000;
+const STALE_MS = 24 * 60 * 60 * 1000;
+const STORAGE_KEY = "wbo-discord-online";
+let memo = null; // { count, at }
 let inFlight = null;
 
+function readStored() {
+  if (memo) {
+    return memo;
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (Number.isFinite(stored?.count) && Number.isFinite(stored?.at)) {
+      memo = stored;
+    }
+  } catch {
+    // Storage blocked or unparseable: fall through to the network.
+  }
+  return memo;
+}
+
+function store(count) {
+  memo = { count, at: Date.now() };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memo));
+  } catch {
+    // Storage blocked: the in-memory copy still serves this page.
+  }
+}
+
+function lastGood(maxAge) {
+  const stored = readStored();
+  return stored && Date.now() - stored.at < maxAge ? stored.count : null;
+}
+
 async function fetchOnlineCount(serverId) {
-  if (cachedCount !== null && Date.now() - cachedAt < CACHE_MS) {
-    return cachedCount;
+  const fresh = lastGood(FRESH_MS);
+  if (fresh !== null) {
+    return fresh;
   }
   if (!inFlight) {
     inFlight = fetch(
@@ -23,11 +64,13 @@ async function fetchOnlineCount(serverId) {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         const n = data?.presence_count;
-        cachedCount = Number.isFinite(n) ? n : null;
-        cachedAt = Date.now();
-        return cachedCount;
+        if (Number.isFinite(n)) {
+          store(n);
+          return n;
+        }
+        return lastGood(STALE_MS);
       })
-      .catch(() => null)
+      .catch(() => lastGood(STALE_MS))
       .finally(() => {
         inFlight = null;
       });
@@ -35,14 +78,43 @@ async function fetchOnlineCount(serverId) {
   return inFlight;
 }
 
-// The community "About" content: right sidebar on wide screens, the About
-// tab on narrow ones (see wbo-community-header). Everything it says comes
-// from theme settings, so it's edited in admin, not here.
+// The forum's total post count, from Discourse's own /about page data.
+// Fetched once per page load and shared by every panel instance; if the
+// request fails (or stats are hidden from this viewer) the stat shows a dash.
+let postsCountRequest = null;
+
+function fetchPostsCount() {
+  postsCountRequest ??= ajax("/about.json")
+    .then((data) => {
+      const n = data?.about?.stats?.posts_count;
+      return Number.isFinite(n) ? n : null;
+    })
+    .catch(() => null);
+  return postsCountRequest;
+}
+
+// The community "About" content: description, Discord box (with the live
+// online count), rules. Right sidebar on wide screens; the About tab on
+// narrow ones (@mobile), which also lists the categories. Copy comes from
+// theme settings.
+//
+// On a category page (@category) the first box is about the category instead
+// (its description and counts, then its subcategories and top tags if it has
+// any); Discord and the rules stay as they are everywhere.
 export default class WboAboutPanel extends Component {
+  @service currentUser;
+  @service site;
+
   @tracked onlineCount = null;
+  @tracked postsCount = null;
 
   constructor() {
     super(...arguments);
+    fetchPostsCount().then((n) => {
+      if (!this.isDestroying && !this.isDestroyed) {
+        this.postsCount = n;
+      }
+    });
     const serverId = (settings.discord_server_id || "").trim();
     if (serverId) {
       fetchOnlineCount(serverId).then((n) => {
@@ -57,6 +129,22 @@ export default class WboAboutPanel extends Component {
     return (settings.discord_invite_url || "").trim();
   }
 
+  // Top-level categories the viewer can see (site.categories already omits
+  // ones they can't), for the About tab.
+  get categories() {
+    if (!this.args.mobile) {
+      return [];
+    }
+    return (this.site.categories || [])
+      .filter((c) => !c.parent_category_id && !c.isUncategorizedCategory)
+      .map((c) => ({
+        name: c.name,
+        url: c.url,
+        description: c.description_text,
+        swatchStyle: htmlSafe(`background-color: #${c.color}`),
+      }));
+  }
+
   get onlineLabel() {
     if (this.onlineCount === null) {
       return null;
@@ -66,51 +154,147 @@ export default class WboAboutPanel extends Component {
     });
   }
 
-  get rules() {
-    return (settings.rules || [])
-      .filter((r) => r?.title)
-      .map((r, i) => ({ ...r, number: i + 1, open: i === 0 }));
+  get activeSince() {
+    return (settings.active_since || "").trim();
   }
 
-  get supportUrl() {
-    return (settings.support_url || "").trim();
+  get postsLabel() {
+    return this.postsCount === null ? "–" : this.postsCount.toLocaleString();
+  }
+
+  get rules() {
+    return (settings.rules || []).filter((r) => r?.title);
+  }
+
+  // "Posts" are topics, as everywhere else in the theme ("New post",
+  // "0 Replies"); both counts include the category's subcategories.
+  get categoryCounts() {
+    const all = [
+      this.args.category,
+      ...(this.args.category.subcategories || []),
+    ];
+    const topics = all.reduce((n, c) => n + (c.topic_count || 0), 0);
+    const posts = all.reduce((n, c) => n + (c.post_count || 0), 0);
+    return {
+      topics: topics.toLocaleString(),
+      replies: Math.max(posts - topics, 0).toLocaleString(),
+    };
+  }
+
+  get categoryAdminTip() {
+    return i18n(themePrefix("about_category_admin_tip_description"), {
+      topicUrl: this.args.category.topic_url,
+    });
+  }
+
+  get subcategories() {
+    return this.args.category.subcategories || [];
+  }
+
+  get categoryTopTags() {
+    return (this.site.categoryTopTags || []).map((tag) => ({
+      name: tag.name,
+      href: getCategoryAndTagUrl(this.args.category, true, tag),
+    }));
+  }
+
+  get hasCategoryLinks() {
+    return this.subcategories.length > 0 || this.categoryTopTags.length > 0;
   }
 
   <template>
     <div class="wbo-about">
-      <section class="wbo-about__card">
-        <h2 class="wbo-about__heading">
-          {{i18n (themePrefix "about_panel.about_heading")}}
-        </h2>
-        <p class="wbo-about__text">{{settings.about_text}}</p>
-        {{#if settings.about_footnote}}
-          <p class="wbo-about__muted">{{settings.about_footnote}}</p>
+      {{#if @category}}
+        <section class="wbo-about__card">
+          <h2 class="wbo-about__heading">
+            {{i18n (themePrefix "about_category")}}
+          </h2>
+          {{#if @category.description}}
+            <p class="wbo-about__text">{{htmlSafe @category.description}}</p>
+          {{else if this.currentUser.admin}}
+            <p class="wbo-about__muted">{{htmlSafe this.categoryAdminTip}}</p>
+          {{/if}}
+          <dl class="wbo-about__stats">
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.category_posts")}}</dt>
+              <dd>{{this.categoryCounts.topics}}</dd>
+            </div>
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.category_replies")}}</dt>
+              <dd>{{this.categoryCounts.replies}}</dd>
+            </div>
+          </dl>
+        </section>
+
+        {{#if this.hasCategoryLinks}}
+          <section class="wbo-about__card">
+            {{#if this.subcategories.length}}
+              <h2 class="wbo-about__heading">
+                {{i18n (themePrefix "subcategories")}}
+              </h2>
+              <div class="wbo-about__chips">
+                {{#each this.subcategories as |subcategory|}}
+                  {{categoryLink subcategory}}
+                {{/each}}
+              </div>
+            {{/if}}
+            {{#if this.categoryTopTags.length}}
+              <h2 class="wbo-about__heading">
+                {{i18n (themePrefix "top_tags")}}
+              </h2>
+              <div class="wbo-about__chips discourse-tags">
+                {{#each this.categoryTopTags as |tag|}}
+                  <a
+                    href={{tag.href}}
+                    data-tag-name={{tag.name}}
+                    class="discourse-tag simple"
+                  >{{tag.name}}</a>
+                {{/each}}
+              </div>
+            {{/if}}
+          </section>
         {{/if}}
-      </section>
+      {{else}}
+        <section class="wbo-about__card">
+          <h2 class="wbo-about__heading">
+            {{settings.about_heading}}
+          </h2>
+          <p class="wbo-about__text">{{settings.about_text}}</p>
+          <dl class="wbo-about__stats">
+            {{#if this.activeSince}}
+              <div class="wbo-about__stat">
+                <dt>{{i18n (themePrefix "about_panel.active_since")}}</dt>
+                <dd>{{this.activeSince}}</dd>
+              </div>
+            {{/if}}
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.total_posts")}}</dt>
+              <dd>{{this.postsLabel}}</dd>
+            </div>
+          </dl>
+        </section>
+      {{/if}}
 
       {{#if this.discordUrl}}
         <section class="wbo-about__card wbo-about__discord">
-          <div>
+          <div class="wbo-about__discord-head">
             <h3
               class="wbo-about__discord-title"
             >{{settings.discord_heading}}</h3>
-            {{#if settings.discord_description}}
-              <p class="wbo-about__muted">{{settings.discord_description}}</p>
+            {{#if this.onlineLabel}}
+              <p class="wbo-about__online">
+                <span class="wbo-about__online-dot" aria-hidden="true"></span>
+                {{this.onlineLabel}}
+              </p>
             {{/if}}
           </div>
-          {{#if this.onlineLabel}}
-            <p class="wbo-about__online">
-              <span class="wbo-about__online-dot" aria-hidden="true"></span>
-              {{this.onlineLabel}}
-            </p>
-          {{/if}}
           <a
             href={{this.discordUrl}}
             class="btn wbo-btn-discord wbo-about__button"
             target="_blank"
             rel="noopener noreferrer"
           >
-            {{wboIcon "chat" 18}}
+            {{icon "fab-discord"}}
             <span>{{i18n (themePrefix "about_panel.join_discord")}}</span>
           </a>
         </section>
@@ -119,15 +303,14 @@ export default class WboAboutPanel extends Component {
       {{#if this.rules.length}}
         <section class="wbo-about__card">
           <h2 class="wbo-about__heading">
-            {{i18n (themePrefix "about_panel.rules_heading")}}
+            {{settings.rules_heading}}
           </h2>
           <ol class="wbo-about__rules">
             {{#each this.rules as |rule|}}
               <li>
                 {{#if rule.detail}}
-                  <details class="wbo-about__rule" open={{rule.open}}>
+                  <details class="wbo-about__rule">
                     <summary>
-                      <span class="wbo-about__rule-num">{{rule.number}}</span>
                       <span class="wbo-about__rule-title">{{rule.title}}</span>
                       {{wboIcon "caret-down" 16 "wbo-about__rule-caret"}}
                     </summary>
@@ -135,7 +318,6 @@ export default class WboAboutPanel extends Component {
                   </details>
                 {{else}}
                   <div class="wbo-about__rule">
-                    <span class="wbo-about__rule-num">{{rule.number}}</span>
                     <span class="wbo-about__rule-title">{{rule.title}}</span>
                   </div>
                 {{/if}}
@@ -151,18 +333,33 @@ export default class WboAboutPanel extends Component {
         </section>
       {{/if}}
 
-      {{#if this.supportUrl}}
+      {{#if this.categories.length}}
         <section class="wbo-about__card">
           <h2 class="wbo-about__heading">
-            {{i18n (themePrefix "about_panel.help_heading")}}
+            {{i18n (themePrefix "about_panel.categories_heading")}}
           </h2>
-          {{#if settings.support_text}}
-            <p class="wbo-about__muted">{{settings.support_text}}</p>
-          {{/if}}
-          <a href={{this.supportUrl}} class="btn btn-default wbo-about__button">
-            <span>{{i18n (themePrefix "about_panel.open_ticket")}}</span>
-            {{wboIcon "arrow-right" 16}}
-          </a>
+          <ul class="wbo-about__categories">
+            {{#each this.categories as |category|}}
+              <li>
+                <a href={{category.url}} class="wbo-about__category">
+                  <span
+                    class="wbo-about__category-swatch"
+                    style={{category.swatchStyle}}
+                  ></span>
+                  <span class="wbo-about__category-text">
+                    <span class="wbo-about__category-name">
+                      {{category.name}}
+                    </span>
+                    {{#if category.description}}
+                      <span class="wbo-about__muted">
+                        {{category.description}}
+                      </span>
+                    {{/if}}
+                  </span>
+                </a>
+              </li>
+            {{/each}}
+          </ul>
         </section>
       {{/if}}
     </div>

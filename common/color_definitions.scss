@@ -38,6 +38,10 @@
     --wbo-btn-ink-secondary: var(--wbo-blue-text);
     --wbo-btn-ink-danger: var(--wbo-danger-text);
     --wbo-btn-ink-success: var(--wbo-success-text);
+    // Discord's brand blurple (#5865f2) has no WordPress token; this is its
+    // darker shade, legible as type on the light wash like the -text tokens.
+    --wbo-btn-ink-discord: #3c45a5;
+    --wbo-btn-icon-discord: var(--wbo-btn-ink-discord);
     --wbo-btn-lift: var(--wbo-btn-shadow);
   }
 } @else {
@@ -51,6 +55,8 @@
     --wbo-btn-ink-secondary: var(--wbo-text);
     --wbo-btn-ink-danger: var(--wbo-text);
     --wbo-btn-ink-success: var(--wbo-text);
+    --wbo-btn-ink-discord: var(--wbo-text);
+    --wbo-btn-icon-discord: #5865f2; // the logo stays brand-coloured on dark
     --wbo-btn-lift: none;
   }
 }
