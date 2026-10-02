@@ -56,6 +56,23 @@ html body #main-outlet .navigation-controls {
   }
 }
 
+// Desktop: the tab strip fills the row, so in the flow the button wrapped
+// onto a row of its own and pushed the first card out of line with the
+// sidebar. Lay it over the right end of the strip instead (the tabs never
+// reach that far).
+@media screen and (width > 1160px) {
+  html body #main-outlet .navigation-container:has(.dismiss-read) {
+    position: relative;
+
+    .navigation-controls {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 43px; // the strip's height, less its hairline
+    }
+  }
+}
+
 .topic-above-suggested-outlet,
 .related-messages-wrapper,
 .suggested-topics-wrapper {
