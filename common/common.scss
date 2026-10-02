@@ -159,15 +159,17 @@ body {
         "sidebar category-banner category-banner category-banner category-banner category-banner"
         "sidebar lspace content sidebar2 rspace sidebar-spacer";
 
-      // Discourse's left menu is showing: on wide windows reserve the same
-      // width on the right, so the feed stays centred under the nav. (Only
-      // here -- without the menu nothing is reserved on either side.)
-      @media screen and (width > 1500px) {
-        grid-template-columns:
-          var(--d-sidebar-width) minmax(var(--wbo-page-gutter), 1fr)
-          minmax(0, 832px) calc(312px + 1.5em)
-          minmax(var(--wbo-page-gutter), 1fr) var(--d-sidebar-width);
-      }
+      // Discourse's left menu is showing: reserve the same width on the
+      // right so the feed sits centred under the nav -- but only out of
+      // space the feed doesn't need. The reserve grows from 0 (at 1490px,
+      // the narrowest window that fits menu + full-width feed + sidebar) to
+      // the menu's width, so the feed slides to centre as the window widens
+      // instead of jumping narrower at a breakpoint. (Without the menu
+      // nothing is reserved on either side.)
+      grid-template-columns:
+        auto minmax(var(--wbo-page-gutter), 1fr) minmax(0, 832px)
+        calc(312px + 1.5em) minmax(var(--wbo-page-gutter), 1fr)
+        clamp(0px, calc(100vw - 1490px), var(--d-sidebar-width));
 
       @media screen and (width <= 1160px) {
         grid-template-areas:
