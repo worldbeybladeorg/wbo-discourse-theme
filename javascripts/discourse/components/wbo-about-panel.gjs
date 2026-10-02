@@ -1,10 +1,14 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { action } from "@ember/object";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
 import { service } from "@ember/service";
 import { htmlSafe } from "@ember/template";
 import categoryLink from "discourse/helpers/category-link";
 import icon from "discourse/helpers/d-icon";
 import { ajax } from "discourse/lib/ajax";
+import getURL from "discourse/lib/get-url";
 import { getCategoryAndTagUrl } from "discourse/lib/url";
 import { i18n } from "discourse-i18n";
 import { wboIcon } from "../lib/wbo-icon";
@@ -100,13 +104,17 @@ function fetchPostsCount() {
 //
 // On a category page (@category) the first box is about the category instead
 // (its description and counts, then its subcategories and top tags if it has
-// any); Discord and the rules stay as they are everywhere.
+// any). On a tag page (@tag) it is about the tag: its description, if it has
+// one, and how many posts use it. Discord and the rules stay as they are
+// everywhere.
 export default class WboAboutPanel extends Component {
   @service currentUser;
   @service site;
+  @service store;
 
   @tracked onlineCount = null;
   @tracked postsCount = null;
+  @tracked tagInfo = null;
 
   constructor() {
     super(...arguments);
@@ -198,6 +206,43 @@ export default class WboAboutPanel extends Component {
     }));
   }
 
+  // A tag's description isn't part of the page's own data; Discourse serves
+  // it separately. Until (or unless) it arrives the box shows the count alone.
+  @action
+  async loadTagInfo() {
+    const id = this.args.tag?.id;
+    this.tagInfo = null;
+    if (!id) {
+      return;
+    }
+    try {
+      const info = await this.store.find("tag-info", id);
+      if (!this.isDestroying && !this.isDestroyed && this.args.tag?.id === id) {
+        this.tagInfo = info;
+      }
+    } catch {
+      // No description to show.
+    }
+  }
+
+  get tagDescription() {
+    return this.tagInfo?.description;
+  }
+
+  get tagPosts() {
+    const count = this.tagInfo?.topic_count ?? this.args.tag.topic_count ?? 0;
+    return count.toLocaleString();
+  }
+
+  // Staff who can edit tags get a pointer to where the description is set.
+  get tagEditUrl() {
+    const tag = this.args.tag;
+    if (!this.currentUser?.canEditTags || !tag.id || tag.name === "none") {
+      return null;
+    }
+    return getURL(`/tag/${tag.slug || `${tag.id}-tag`}/${tag.id}/edit/general`);
+  }
+
   get hasCategoryLinks() {
     return this.subcategories.length > 0 || this.categoryTopTags.length > 0;
   }
@@ -254,6 +299,32 @@ export default class WboAboutPanel extends Component {
             {{/if}}
           </section>
         {{/if}}
+      {{else if @tag}}
+        <section
+          class="wbo-about__card"
+          {{didInsert this.loadTagInfo}}
+          {{didUpdate this.loadTagInfo @tag.id}}
+        >
+          <h2 class="wbo-about__heading">
+            {{i18n (themePrefix "about_tag")}}
+          </h2>
+          {{#if this.tagDescription}}
+            <p class="wbo-about__text">{{htmlSafe this.tagDescription}}</p>
+          {{else if this.tagEditUrl}}
+            <p class="wbo-about__muted">
+              {{i18n (themePrefix "about_tag_admin_tip_description")}}
+              <a href={{this.tagEditUrl}}>{{i18n
+                  (themePrefix "about_tag_admin_tip_description_link")
+                }}</a>
+            </p>
+          {{/if}}
+          <dl class="wbo-about__stats">
+            <div class="wbo-about__stat">
+              <dt>{{i18n (themePrefix "about_panel.category_posts")}}</dt>
+              <dd>{{this.tagPosts}}</dd>
+            </div>
+          </dl>
+        </section>
       {{else}}
         <section class="wbo-about__card">
           <h2 class="wbo-about__heading">

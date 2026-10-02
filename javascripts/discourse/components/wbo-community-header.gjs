@@ -8,6 +8,7 @@ import { htmlSafe } from "@ember/template";
 import { modifier } from "ember-modifier";
 import CategoryNotificationsTracking from "discourse/components/category-notifications-tracking";
 import DButton from "discourse/components/d-button";
+import NotificationsTracking from "discourse/components/notifications-tracking";
 import icon from "discourse/helpers/d-icon";
 import replaceEmoji from "discourse/helpers/replace-emoji";
 import getURL from "discourse/lib/get-url";
@@ -35,8 +36,8 @@ const NAV_HEIGHT = 56;
 // replaces Discourse's navigation bar: phones and tablets alike.
 // The About tab shows the same panel the right sidebar shows on desktop.
 //
-// A category page gets the same header, scoped to the category, under a title
-// row that names it (in place of the old colour banner):
+// A category or tag page gets the same header, scoped to that category or
+// tag, under a title row that names it (in place of the old colour banner):
 //   ■ Beyblade General                         [settings]
 //   [New post] [Watching]
 //   Posts | About                      Latest ▾
@@ -111,9 +112,30 @@ export default class WboCommunityHeader extends Component {
     return this.routeAttributes?.tag;
   }
 
+  // The tag this page lists, if it is a tag page.
+  get pageTag() {
+    return this.category ? null : this.tag;
+  }
+
+  // A page for several tags at once ("a + b"): named, but with nothing to
+  // watch, star or edit, as in core.
+  get isTagIntersection() {
+    return !!this.routeAttributes?.additionalTags?.length;
+  }
+
+  get tagTitle() {
+    const more = this.routeAttributes?.additionalTags || [];
+    return [this.pageTag.name, ...more].join(" + ");
+  }
+
+  // A category or tag page: gets the title row, and its own links and counts.
+  get isScoped() {
+    return !!this.category || !!this.pageTag;
+  }
+
   get currentFilter() {
     return (
-      (this.category && this.routeAttributes.filterType) ||
+      (this.isScoped && this.routeAttributes.filterType) ||
       this.router.currentRoute?.localName
     );
   }
@@ -123,7 +145,30 @@ export default class WboCommunityHeader extends Component {
   }
 
   get show() {
-    return !!this.category || this.isTopRoute;
+    return this.isScoped || this.isTopRoute;
+  }
+
+  // Loaded by the tag route for signed-in users.
+  get tagNotification() {
+    return this.isTagIntersection
+      ? null
+      : this.routeAttributes?.tagNotification;
+  }
+
+  get tagNotificationLevel() {
+    return get(this.tagNotification, "notification_level");
+  }
+
+  get canStarTag() {
+    return this.currentUser && !this.isTagIntersection;
+  }
+
+  get canEditTag() {
+    return (
+      this.currentUser?.canEditTags &&
+      !this.isTagIntersection &&
+      this.pageTag.name !== "none"
+    );
   }
 
   // The category's own mark, as in the sidebar: its icon or emoji if it has
@@ -170,6 +215,10 @@ export default class WboCommunityHeader extends Component {
     if (!this.currentUser?.can_create_topic) {
       return false;
     }
+    if (this.pageTag) {
+      const attrs = this.routeAttributes;
+      return attrs.canCreateTopic !== false && !!attrs.canCreateTopicOnTag;
+    }
     return !this.category || this.category.permission === PermissionType.FULL;
   }
 
@@ -178,15 +227,16 @@ export default class WboCommunityHeader extends Component {
   }
 
   get sortOptions() {
+    const scoped = this.isScoped;
     const category = this.category;
+    const tag = scoped ? this.tag : null;
     const noSubcategories = !!this.routeAttributes?.noSubcategories;
-    // Within a category the counts and links are the category's own, and
+    // Within a category or tag the counts and links are its own, and
     // "Categories" (a site-wide page) drops out.
-    const tag = category ? this.tag : null;
-    const scope = category
-      ? { categoryId: category.id, tagId: tag?.id, noSubcategories }
+    const scope = scoped
+      ? { categoryId: category?.id, tagId: tag?.id, noSubcategories }
       : {};
-    const names = category
+    const names = scoped
       ? this.topMenu.filter((name) => name !== "categories")
       : this.topMenu;
 
@@ -204,7 +254,7 @@ export default class WboCommunityHeader extends Component {
       return {
         name,
         label,
-        href: category
+        href: scoped
           ? NavItem.pathFor(name, { category, noSubcategories, tag })
           : getURL(`/${name}`),
         selected: name === this.currentFilter,
@@ -263,7 +313,7 @@ export default class WboCommunityHeader extends Component {
       action: Composer.CREATE_TOPIC,
       draftKey: Composer.NEW_TOPIC_KEY,
       categoryId: this.category?.id,
-      tags: this.category ? this.tag?.name : undefined,
+      tags: this.isScoped ? this.tag?.name : undefined,
     });
   }
 
@@ -272,17 +322,44 @@ export default class WboCommunityHeader extends Component {
     return this.category.setNotification(level);
   }
 
-  // The same destination as core's own wrench button on category pages.
+  // As core's own tag notification menu does it (d-navigation.gjs).
+  @action
+  async changeTagNotificationLevel(level) {
+    const response = await this.tagNotification.update({
+      notification_level: level,
+    });
+    const payload = response.responseJson;
+    this.tagNotification.set("notification_level", level);
+    this.currentUser.setProperties({
+      watched_tags: payload.watched_tags,
+      watching_first_post_tags: payload.watching_first_post_tags,
+      tracked_tags: payload.tracked_tags,
+      muted_tags: payload.muted_tags,
+      regular_tags: payload.regular_tags,
+    });
+  }
+
+  // The same destinations as core's own wrench buttons on these pages.
   @action
   editCategory() {
     DiscourseURL.routeTo(`/c/${Category.slugFor(this.category)}/edit`);
+  }
+
+  @action
+  editTag() {
+    this.router.transitionTo(
+      "tag.edit.tab",
+      this.pageTag.slug,
+      this.pageTag.id,
+      "general"
+    );
   }
 
   <template>
     {{#if this.show}}
       <div
         class="wbo-community-header
-          {{if this.category 'wbo-community-header--category'}}"
+          {{if this.isScoped 'wbo-community-header--titled'}}"
       >
         {{#if this.category}}
           <div class="wbo-community-header__title">
@@ -322,6 +399,34 @@ export default class WboCommunityHeader extends Component {
               />
             {{/if}}
           </div>
+        {{else if this.pageTag}}
+          <div class="wbo-community-header__title">
+            <span class="wbo-community-header__mark">{{icon "tag"}}</span>
+            <h1 class="wbo-community-header__name">{{this.tagTitle}}</h1>
+            <span class="wbo-community-header__rail-only">
+              {{#if this.tagNotification}}
+                <NotificationsTracking
+                  @levelId={{this.tagNotificationLevel}}
+                  @onChange={{this.changeTagNotificationLevel}}
+                  @showFullTitle={{true}}
+                  @showCaret={{true}}
+                  @prefix="tagging.notifications"
+                  class="tag-notifications-tracking"
+                />
+              {{/if}}
+              {{#if this.canStarTag}}
+                <AddToSidebar @tag={{this.pageTag}} />
+              {{/if}}
+            </span>
+            {{#if this.canEditTag}}
+              <DButton
+                @action={{this.editTag}}
+                @icon="wrench"
+                @title="tagging.edit"
+                class="btn-flat wbo-community-header__settings"
+              />
+            {{/if}}
+          </div>
         {{/if}}
 
         <div class="wbo-community-header__actions">
@@ -345,6 +450,17 @@ export default class WboCommunityHeader extends Component {
                 @onChange={{this.changeNotificationLevel}}
                 @showFullTitle={{true}}
                 @showCaret={{true}}
+              />
+            {{/if}}
+          {{else if this.pageTag}}
+            {{#if this.tagNotification}}
+              <NotificationsTracking
+                @levelId={{this.tagNotificationLevel}}
+                @onChange={{this.changeTagNotificationLevel}}
+                @showFullTitle={{true}}
+                @showCaret={{true}}
+                @prefix="tagging.notifications"
+                class="tag-notifications-tracking"
               />
             {{/if}}
           {{else if this.discordUrl}}
@@ -417,7 +533,11 @@ export default class WboCommunityHeader extends Component {
 
       {{#if this.isAbout}}
         <div class="wbo-community-header__about">
-          <WboAboutPanel @mobile={{true}} @category={{this.category}} />
+          <WboAboutPanel
+            @mobile={{true}}
+            @category={{this.category}}
+            @tag={{this.pageTag}}
+          />
         </div>
       {{/if}}
     {{/if}}

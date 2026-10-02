@@ -93,7 +93,6 @@ body {
 @import "badges";
 @import "buddy-emblem";
 @import "categories";
-@import "category-banner";
 @import "category-boxes";
 @import "chat";
 @import "community";
@@ -212,7 +211,6 @@ body {
 
   &[class*="user-"],
   &.archetype-regular {
-    .custom-tag-banner,
     .custom-right-sidebar {
       display: none;
     }

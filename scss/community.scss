@@ -4,7 +4,7 @@
 // category pages, and the About tab on narrow screens.
 // components/wbo-community-header.gjs: the Posts/About tabs, New post /
 // Discord buttons and sort menu (<= 1160px, where the right sidebar is
-// hidden), and on category pages the title row (every width).
+// hidden), and on category and tag pages the title row (every width).
 // Type comes from the theme scale; this sheet sets layout and colour only.
 
 $wbo-rail-hidden-bp: 1160px; // matches the grid in common.scss
@@ -483,9 +483,9 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     margin-bottom: 1em;
   }
 
-  // ── Category pages: the title row ─────────────────────────────────────────
-  // The category's colour square (or its icon / emoji) and its name, in place
-  // of the old full-width colour banner. 44px tall, the height of the
+  // ── Category and tag pages: the title row ─────────────────────────────────
+  // The category's colour square (or its icon / emoji) and its name, or a tag
+  // icon and the tag's name, in place of the old full-width colour banner. 44px tall, the height of the
   // sidebar's New post button, which it sits level with.
   &__title {
     display: flex;
@@ -612,16 +612,20 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
 }
 
 // The title row has the settings button, so core's own wrench (pinned to the
-// top-right corner of the window, scss/topic-list.scss) goes.
-body:has(.wbo-community-header--category) .navigation-controls .edit-category {
-  display: none;
+// top-right corner of the window, scss/topic-list.scss) goes: the category
+// one and the tag one.
+body:has(.wbo-community-header--titled) .navigation-controls {
+  .edit-category,
+  #show-tag-info {
+    display: none;
+  }
 }
 
-// Where the right sidebar shows, a category page's header is the title row
-// alone: New post is at the top of the sidebar and the filters are
+// Where the right sidebar shows, a category or tag page's header is the title
+// row alone: New post is at the top of the sidebar and the filters are
 // Discourse's own tabs, directly under the title.
 @media screen and (width > $wbo-rail-hidden-bp) {
-  .wbo-community-header.wbo-community-header--category {
+  .wbo-community-header.wbo-community-header--titled {
     display: flex;
     flex-direction: column;
 
@@ -636,13 +640,13 @@ body:has(.wbo-community-header--category) .navigation-controls .edit-category {
   }
 
   // (The outlet is otherwise dropped at this width, see below.)
-  .list-controls .custom-post-bar:has(.wbo-community-header--category) {
+  .list-controls .custom-post-bar:has(.wbo-community-header--titled) {
     display: block;
   }
 
   // Title, then the tabs 12px under it; the tab strip doesn't need the 44px
   // it has on the feeds (where it stands level with the sidebar's button).
-  .list-controls:has(.wbo-community-header--category) {
+  .list-controls:has(.wbo-community-header--titled) {
     gap: 12px;
 
     #navigation-bar.nav-pills {
@@ -669,8 +673,9 @@ body:has(.wbo-community-header--category) .navigation-controls .edit-category {
   // right. Use the same edge-to-edge page for the whole phone range.
   // (html + the attribute selector: to out-rank the grid rules in
   // common.scss.)
+  // (.tags-page: a tag's page has no navigation-* class.)
   html
-    body[class*="navigation-"]:has(.wbo-community-header)
+    body:is([class*="navigation-"], .tags-page):has(.wbo-community-header)
     #main-outlet-wrapper {
     grid-template-columns: auto 0 minmax(0, 1fr) 0 auto;
     gap: 0;
@@ -751,12 +756,10 @@ body:has(.wbo-community-header--category) .navigation-controls .edit-category {
   }
 }
 
-// Where "Create topic" lives: the community header's button on the
-// top-level feeds below 1160px, and the button at the top of the right
-// sidebar above it (sidebar-welcome.gjs). So the old fake-input bar is hidden
-// on those feeds at every width, and on all pages once the sidebar shows
-// (category pages have the create button in their About card). It remains
-// only on category/tag pages between phone and sidebar widths.
+// Where "New post" lives: the header's button below 1160px, and the button
+// at the top of the right sidebar above it, on the top-level feeds
+// (sidebar-welcome.gjs) and on category and tag pages alike. So the old
+// fake-input bar is hidden wherever the header shows.
 .custom-post-bar:has(.wbo-community-header) .custom-post-bar-contents {
   display: none;
 }
