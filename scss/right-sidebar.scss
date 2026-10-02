@@ -2,23 +2,27 @@
   display: flex;
   flex-direction: column;
   gap: 1em;
-  // Align the right column's first card with the left content column's
-  // first card. The left column starts 16px below the grid top
-  // (#main-outlet padding-top); this margin lands the sidebar's first
-  // card on the same line. (Was 1.5em, which sat ~12px too low.)
-  margin-top: 0.75em;
+
+  // The first card lines up with the left column's first card, 12px (0.75em)
+  // under the nav bar. That 12px is padding INSIDE the scrolling box, not a
+  // margin or a `top` offset outside it: when the sidebar is taller than the
+  // window and scrolls on its own, the cards slide away under the nav bar
+  // (and off the bottom of the window) instead of being cut off at an
+  // invisible line 12px short of each.
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-block: 0.75em;
   grid-area: sidebar2;
+
   // Sticky at every window height (it used to be only at 900px+, so on a
-  // shorter window it scrolled away with the page). Once stuck, `top`
-  // governs position, not margin-top: --header-offset (56px) + 0.75em
-  // (12px) = 68px, matching the left column's first card.
+  // shorter window it scrolled away with the page).
   position: sticky;
-  top: calc(var(--header-offset) + 0.75em);
+  top: var(--header-offset);
   align-self: start;
 
   // Taller than the window? Scroll the sidebar on its own (like Reddit's)
   // instead of cutting off whatever sits below the fold.
-  max-height: calc(100vh - var(--header-offset) - 1.5em);
+  max-height: calc(100vh - var(--header-offset));
   overflow-y: auto;
   overscroll-behavior: contain;
 
