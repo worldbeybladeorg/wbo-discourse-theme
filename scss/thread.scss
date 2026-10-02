@@ -43,15 +43,21 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
   // Bottom edge is the first post's card.
   padding: 16px 16px 0;
 
+  // Core keeps the title to 90% of the card on wide screens, which wraps a
+  // long title a line early in this narrower column.
+  .title-wrapper {
+    width: 100%;
+  }
+
   // The two halves meet on a fractional pixel when the title wraps; a 1px
   // skirt of card colour under the title keeps the page from showing through.
-  .regular:has(.post-stream > [data-post-number="1"]) & {
+  #main-outlet:has(.post-stream > [data-post-number="1"]) & {
     box-shadow: 0 1px 0 var(--secondary);
   }
 
   // Opened part-way down a long topic the first post isn't on the page, so
   // the title is a card on its own.
-  .regular:not(:has(.post-stream > [data-post-number="1"])) & {
+  #main-outlet:not(:has(.post-stream > [data-post-number="1"])) & {
     margin-bottom: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--redditish-border-color);
@@ -328,6 +334,19 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
       opacity: 1;
     }
 
+    // Core dims Reply (its "fade-out" class) until the post is hovered; here it
+    // is one of three equal controls.
+    .btn.fade-out {
+      opacity: 1;
+    }
+
+    // Phones: a full-size tap target, with the same quiet look.
+    @media screen and (width <= 719px) {
+      .btn {
+        min-height: 44px;
+      }
+    }
+
     // A liked post keeps core's heart colour.
     .toggle-like.has-like,
     .toggle-like.has-like .d-icon {
@@ -415,11 +434,17 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
 // The footer's own Watching control would sit a few lines under the one in
 // the replies header on a short topic. Keep it only when the topic is long
 // enough that the header has scrolled well out of reach (or isn't loaded).
-.regular:has(.wbo-thread-replies__head):not(
+#main-outlet:has(.wbo-thread-replies__head):not(
     :has(.post-stream > [data-post-number]:nth-of-type(8))
   )
   #topic-footer-buttons {
   display: none;
+}
+
+// The menu's descriptions are sentences; the theme's button rule (common.scss)
+// was capitalising every word of them.
+.notifications-tracking-btn .notifications-tracking-btn__description {
+  text-transform: none;
 }
 
 // It no longer needs its explanation sentence either way.
@@ -600,8 +625,21 @@ $wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action
     gap: 8px;
     box-sizing: border-box;
     min-height: 44px;
+    padding-inline: 20px;
     border-radius: var(--d-button-border-radius);
     text-decoration: none;
+  }
+
+  // The plain button gets the card hairline, so it reads as a button next to
+  // the accented one. ("a" outweighs the tonal button rules in common.scss,
+  // which come later in the sheet.)
+  a.btn-default,
+  .discourse-no-touch & a.btn-default:hover {
+    border: 1px solid var(--redditish-border-color);
+  }
+
+  .discourse-no-touch & a.btn-default:hover {
+    border-color: var(--redditish-border-highlight-color);
   }
 
   // The category's colour square, as in the feed's meta line.
