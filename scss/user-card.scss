@@ -1,0 +1,70 @@
+// ── User card ───────────────────────────────────────────────────────────────
+//
+// The hover card on avatars/usernames, brought in line with WordPress's
+// profile card: role pills under the name instead of core's staff shield, and
+// "View Profile" (to the WordPress profile) instead of Message. The pills and
+// button are connectors (user-card-after-username, user-card-below-message-
+// button); this file hides what they replace.
+
+.user-card {
+  // The site heading face, as on the profile card's name.
+  .names__primary {
+    font-weight: 600;
+    font-stretch: 110%;
+  }
+
+  // The role pills say who's staff; core's shield (userStatus) would repeat it.
+  .names__primary .d-icon-shield-halved {
+    display: none;
+  }
+
+  .usercard-controls .compose-pm {
+    display: none;
+  }
+
+  // Links styled as .btn don't get core's pill radius; match the buttons.
+  .wbo-uc-profile {
+    border-radius: var(--d-button-border-radius);
+    text-decoration: none;
+
+    .wbo-icon {
+      flex-shrink: 0;
+    }
+  }
+}
+
+// Same pill recipe as WordPress's .wbo-profile .badge (and the account
+// panel's .um-badge).
+.wbo-uc-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+
+.wbo-uc-badge {
+  --badge-accent: rgba(var(--wbo-fg-rgb), 0.4);
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 11px;
+  border-radius: var(--wbo-radius-full);
+  border: 1px solid color-mix(in srgb, var(--badge-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--badge-accent) 12%, transparent);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  color: var(--wbo-text);
+
+  &.badge-staff {
+    --badge-accent: var(--wbo-orange);
+  }
+
+  &.badge-organizer {
+    --badge-accent: var(--wbo-organize);
+  }
+
+  &.badge-judge {
+    --badge-accent: var(--wbo-judge);
+  }
+}
