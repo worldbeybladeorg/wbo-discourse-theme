@@ -30,7 +30,7 @@ const NAV_HEIGHT = 56;
 
 // Narrow-screen header for the top-level feeds, Reddit style:
 //   [New topic] [Discord]
-//   Latest ▾ | Categories | About
+//   Latest ▾ | About | Categories
 // The first tab is the topic list, named by its current sort. While it is the
 // active tab, tapping it opens the sort menu; from another tab, tapping its
 // label goes back to the list and tapping its caret opens the sort menu to go
@@ -543,6 +543,13 @@ export default class WboCommunityHeader extends Component {
                 </ul>
               {{/if}}
             </div>
+            <button
+              type="button"
+              role="tab"
+              class="wbo-community-header__tab"
+              aria-selected={{if this.isAbout "true" "false"}}
+              {{on "click" (fn this.setTab "about")}}
+            >{{i18n (themePrefix "community_header.about")}}</button>
             {{#if this.showCategoriesTab}}
               <a
                 href={{this.categoriesHref}}
@@ -552,13 +559,6 @@ export default class WboCommunityHeader extends Component {
                 {{on "click" this.showList}}
               >{{i18n "filters.categories.title"}}</a>
             {{/if}}
-            <button
-              type="button"
-              role="tab"
-              class="wbo-community-header__tab"
-              aria-selected={{if this.isAbout "true" "false"}}
-              {{on "click" (fn this.setTab "about")}}
-            >{{i18n (themePrefix "community_header.about")}}</button>
           </div>
         </div>
       </div>
