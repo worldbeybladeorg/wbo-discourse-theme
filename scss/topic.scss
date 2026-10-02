@@ -2,14 +2,12 @@
   background: var(--secondary);
   margin: 0;
   border-radius: var(--wbo-card-radius) var(--wbo-card-radius) 0 0;
-  // #topic-title and .posts-wrapper together form one card. Give the top
-  // three sides the same hairline the wrapper uses on the bottom three
-  // (custom-card mixin, with border-top: none reset in .posts-wrapper
-  // below) so the outline closes around the whole thing.
+  // #topic-title and the first post together form one card: the title has the
+  // top three sides of the hairline, the post's article the bottom three
+  // (scss/thread.scss, which also sets the padding).
   border: 1px solid var(--redditish-border-color);
   border-bottom: none;
   box-sizing: border-box;
-  padding: 1.25em 2em;
 
   @include custom-topic-width;
 
@@ -52,56 +50,6 @@
 
   .buttons {
     margin-bottom: 0;
-  }
-}
-
-.topic-post.topic-owner {
-  .topic-avatar,
-  .topic-body {
-    border-top: none;
-  }
-}
-
-// Divider between consecutive posts. The theme strips core's per-post
-// top border for owner posts (above), and core draws none between
-// same-author posts, so back-to-back replies rendered with 0px between
-// them -- no separator at all. Add a hairline with breathing room
-// between directly-adjacent posts. Posts separated by a .time-gap keep
-// the gap as their divider (the adjacent-sibling combinator only matches
-// a .topic-post immediately following another .topic-post, so a
-// .time-gap in between suppresses this).
-.post-stream .topic-post + .topic-post {
-  border-top: 1px solid var(--redditish-border-color);
-  margin-top: 1.5em;
-  padding-top: 1.5em;
-}
-
-// The "N days later" separator between posts is a .small-action whose
-// desc + avatar carry a border-top for the HR line. Two problems:
-//   1. Core coloured the HR --content-border-color (rgb 56,56,56 on this
-//      scheme -- same wrong grey the composer had before P1-3).
-//   2. The .small-action has 0 margin, and the neighbouring .topic-post
-//      elements also have 0 margin/padding on their edges, so the HR
-//      renders flush against the bottom of the previous post's last
-//      line with no visual breathing room.
-.small-action.time-gap {
-  margin-block: 0.75em;
-
-  .small-action-desc,
-  .topic-avatar {
-    border-top-color: var(--redditish-border-color);
-  }
-
-  // Core sets .small-action-desc's width to calc(--topic-body-width +
-  // --topic-body-width-padding) plus 12px left padding, so "N days
-  // later" sits 12px off the container's left edge AND overflows on
-  // narrow viewports. Let it fill the flex parent naturally and align
-  // its text with the container edge (matches everything else in the
-  // post stream that reads left-flush).
-  .small-action-desc {
-    width: auto;
-    flex: 1 1 auto;
-    padding-left: 0;
   }
 }
 
@@ -257,8 +205,7 @@
 }
 
 .container.posts {
-  grid-template-columns: 1fr 8em;
-
+  // Wider than this the columns are set in scss/thread.scss.
   @media screen and (width <= 924px) {
     grid-template-columns: 1fr;
   }
@@ -306,14 +253,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-}
-
-.posts-wrapper {
-  @include custom-card {
-    border-radius: 0 0 var(--wbo-card-radius) var(--wbo-card-radius);
-    border-top: none !important;
-    padding: 1em 2em 2em;
   }
 }
 

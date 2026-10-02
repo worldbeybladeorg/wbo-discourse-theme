@@ -28,3 +28,18 @@ en:
     feed: "Feed"
     about: "About"
     sort: "Sort topics"
+  thread:
+    reply_placeholder: "Add a reply…"
+    log_in_to_reply: "Log in to reply"
+    replies:
+      one: "%{count} reply"
+      other: "%{count} replies"
+    no_replies: "No replies yet"
+    see_unread:
+      one: "See %{count} unread topic"
+      other: "See all %{count} unread topics"
+    see_new:
+      one: "See %{count} new topic"
+      other: "See all %{count} new topics"
+    browse_category: "Browse %{category}"
+    latest: "Latest topics"

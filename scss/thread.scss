@@ -1,0 +1,622 @@
+// ── Thread (topic page) ─────────────────────────────────────────────────────
+//
+// The first post is its own card, joined to the title card above it. Under it
+// come the reply bar and the "N replies" header (components/wbo-thread-
+// replies.gjs), then the replies as one card with hairline dividers, then
+// "more topics" as compact rows. Type comes from the theme scale; this sheet
+// sets layout and colour only.
+
+$wbo-thread-dock-bp: 924px; // at and below this, core docks the timeline as a pill
+
+// Every direct child of .post-stream that is part of the replies card: posts
+// and small-action posts (both carry data-post-number), "N days later" and
+// "last visit" lines, gaps and loading placeholders. The first post is not.
+$wbo-reply-piece: "[data-post-number]:not([data-post-number='1']), .small-action, .gap, .placeholder";
+
+// ── Column ──────────────────────────────────────────────────────────────────
+// The posts sit in a centred column as wide as the feed; the timeline keeps
+// its 128px to the right of it. Everything else on the page that lines up
+// with the posts uses the custom-topic-width mixin (common.scss), which
+// resolves to the same left edge and width.
+@media screen and (width > $wbo-thread-dock-bp) {
+  .container.posts {
+    grid-template-columns:
+      minmax(0, 1fr) minmax(0, var(--wbo-thread-max-width))
+      minmax(var(--wbo-thread-rail), 1fr);
+    grid-template-areas: ". posts timeline";
+  }
+}
+
+.more-topics__container {
+  max-width: none;
+
+  @include custom-topic-width;
+}
+
+// ── Cards ───────────────────────────────────────────────────────────────────
+// .posts-wrapper used to be the card. Now it is only a container.
+.posts-wrapper {
+  padding: 0;
+}
+
+#topic-title {
+  // Bottom edge is the first post's card.
+  padding: 16px 16px 0;
+
+  // The two halves meet on a fractional pixel when the title wraps; a 1px
+  // skirt of card colour under the title keeps the page from showing through.
+  .regular:has(.post-stream > [data-post-number="1"]) & {
+    box-shadow: 0 1px 0 var(--secondary);
+  }
+
+  // Opened part-way down a long topic the first post isn't on the page, so
+  // the title is a card on its own.
+  .regular:not(:has(.post-stream > [data-post-number="1"])) & {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--redditish-border-color);
+    border-radius: var(--wbo-card-radius);
+  }
+}
+
+// Core pads every post's article (15px 0 8px); the cards below do the padding.
+.topic-post > article {
+  padding: 0;
+}
+
+// (.topic-post in the selector outweighs core's mobile rule that zeroes the
+// first post's bottom padding.)
+.post-stream > .topic-post[data-post-number="1"] > article {
+  box-sizing: border-box;
+  padding: 12px 16px 16px;
+  border: 1px solid var(--redditish-border-color);
+  border-top: 0;
+  border-radius: 0 0 var(--wbo-card-radius) var(--wbo-card-radius);
+  background: var(--secondary);
+}
+
+.post-stream > :is(#{$wbo-reply-piece}) {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 16px;
+  border: 0 solid var(--redditish-border-color);
+  border-inline-width: 1px;
+  background: var(--secondary);
+
+  // First of a run: the top of the card.
+  &:not(:is(#{$wbo-reply-piece}) + *) {
+    border-top-width: 1px;
+    border-top-left-radius: var(--wbo-card-radius);
+    border-top-right-radius: var(--wbo-card-radius);
+  }
+
+  // Last of a run: the bottom of the card.
+  &:not(:has(+ :is(#{$wbo-reply-piece}))) {
+    border-bottom-width: 1px;
+    border-bottom-left-radius: var(--wbo-card-radius);
+    border-bottom-right-radius: var(--wbo-card-radius);
+  }
+
+  // Hairline between neighbours.
+  + :is(#{$wbo-reply-piece}) {
+    border-top-width: 1px;
+  }
+}
+
+// "N days later" and "last visit" lines sit between two posts: a short muted
+// line of their own, between the same hairlines as everything else.
+.post-stream > .small-action {
+  padding-block: 8px;
+  color: var(--wbo-muted);
+  font-size: var(--font-down-1);
+
+  &.time-gap {
+    .topic-avatar {
+      display: none;
+    }
+
+    // Core gives the text a fixed width (topic body + padding), which
+    // overflows a narrow card; let it fill the row instead.
+    .small-action-desc {
+      flex: 1 1 auto;
+      width: auto;
+      padding: 0;
+      border-top: 0;
+    }
+  }
+}
+
+// Small-action posts ("closed this topic", "pinned"): core rules them off with
+// a line of their own; the card's hairlines already do that.
+.post-stream > [data-post-number] > article.small-action {
+  .topic-avatar,
+  .small-action-desc {
+    border-top: 0;
+  }
+}
+
+// Straight after the first post the gap is already told by the two dates, and
+// it would be the first line of the replies card. Hide it there, and let the
+// post after it start the card.
+.post-stream > [data-post-number="1"] + .time-gap {
+  display: none;
+
+  + * {
+    border-top-width: 1px;
+    border-top-left-radius: var(--wbo-card-radius);
+    border-top-right-radius: var(--wbo-card-radius);
+  }
+}
+
+// ── Post header ─────────────────────────────────────────────────────────────
+// One line: avatar, name, date. Core puts the avatar in its own column with
+// the body indented beside it; here the avatar sits inline with the name and
+// the body runs the full width of the card, the same on every post.
+.post-stream .topic-post {
+  .post__row.row {
+    position: relative;
+    display: block;
+  }
+
+  // (The long selector matches core's sticky-avatar rule, which would
+  // otherwise keep the avatar sticky in its own column.)
+  .topic-avatar,
+  &.sticky-avatar > article > .row > .topic-avatar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    float: none;
+    width: 32px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .topic-body {
+    float: none;
+    width: 100%;
+    padding: 0;
+    border: 0;
+  }
+
+  .topic-meta-data {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 32px;
+    margin: 0;
+    padding: 0 0 0 42px;
+  }
+
+  .names {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-right: 0;
+  }
+
+  .post-infos {
+    gap: 8px;
+
+    // Date first, then the edit count.
+    .post-info.edits {
+      order: 2;
+    }
+
+    // "•" between the name and the date, like the feed card's meta line.
+    &::before {
+      content: "\2022";
+      color: var(--wbo-muted);
+    }
+  }
+
+  .post-info.post-date,
+  .post-info.post-date a {
+    margin-left: 0;
+    color: var(--wbo-muted);
+    font-size: var(--font-down-1);
+  }
+
+  .cooked {
+    padding: 12px 0 0;
+  }
+}
+
+// The embedded "in reply to" / "replies" posts keep core's own compact
+// layout: undo the header rules above inside them.
+.post-stream .topic-post .embedded-posts {
+  .topic-avatar {
+    position: static;
+  }
+
+  .topic-meta-data {
+    padding-left: 0;
+  }
+}
+
+// ── Post controls ───────────────────────────────────────────────────────────
+// A quiet row under each post, left-aligned: Like, Reply, Copy link, then Edit
+// and More at the far end. Labels are switched on in
+// api-initializers/wbo-thread.gjs. Same row on the first post and on replies.
+.post-stream .topic-post {
+  .post-menu-area {
+    margin: 8px 0 0;
+    padding: 0;
+  }
+
+  nav.post-controls {
+    flex-wrap: wrap;
+    gap: 4px;
+
+    // Pull the first button's padding into the gutter so its icon lines up
+    // with the text above.
+    margin: 0 -8px -8px;
+    color: var(--wbo-muted);
+
+    .actions {
+      flex: 1 1 auto;
+      order: 1;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 0;
+
+      > * {
+        order: 5;
+        margin: 0; // core's phone layout spreads them with auto margins
+      }
+
+      > .double-button,
+      > .post-action-menu__like {
+        order: 1;
+      }
+
+      > .post-action-menu__reply {
+        order: 2;
+      }
+
+      > .post-action-menu__copy-link,
+      > .post-action-menu__share {
+        order: 3;
+      }
+
+      > .post-action-menu__edit {
+        order: 8;
+        margin-left: auto;
+      }
+
+      > .post-action-menu__show-more {
+        order: 9;
+        margin-left: auto;
+      }
+
+      > .post-action-menu__edit ~ .post-action-menu__show-more,
+      &:has(> .post-action-menu__edit) > .post-action-menu__show-more {
+        margin-left: 0;
+      }
+    }
+
+    // "N replies" expander: after the actions rather than before them.
+    .show-replies {
+      order: 2;
+    }
+
+    .btn,
+    .discourse-no-touch & .btn:hover {
+      gap: 6px;
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+      color: var(--wbo-muted);
+      font-size: var(--font-down-1);
+      font-weight: 500;
+      font-stretch: normal;
+      text-shadow: none;
+      text-transform: none;
+
+      .d-icon {
+        color: currentcolor;
+      }
+    }
+
+    .discourse-no-touch & .btn:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.08);
+      color: var(--wbo-text);
+      opacity: 1;
+    }
+
+    // A liked post keeps core's heart colour.
+    .toggle-like.has-like,
+    .toggle-like.has-like .d-icon {
+      color: var(--love);
+    }
+  }
+}
+
+// ── Reply bar + replies header (components/wbo-thread-replies.gjs) ──────────
+.wbo-thread-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 16px 0;
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    @include custom-card;
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  // Looks like the feed's "Create topic" input, but it is a button: it opens
+  // the composer.
+  &__prompt {
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    min-width: 0;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--redditish-border-color);
+    border-radius: var(--d-input-border-radius);
+    background: var(--redditish-bg-color);
+    color: var(--wbo-muted);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    .discourse-no-touch &:hover {
+      border-color: var(--tertiary);
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+  }
+
+  // Section titles are 600 on WordPress, like "New & Unread Topics" below.
+  &__title {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  // The Watching / Tracking control: an outlined pill, not a tonal button.
+  .notifications-tracking-trigger-btn,
+  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    gap: 8px;
+    padding-block: 8px;
+    padding-inline: 14px;
+    border: 1px solid var(--redditish-border-color);
+    background: var(--secondary);
+    box-shadow: none;
+    color: var(--wbo-label);
+    font-size: var(--font-down-1);
+    text-shadow: none;
+    text-transform: none;
+  }
+
+  .discourse-no-touch & .notifications-tracking-trigger-btn:hover {
+    border-color: var(--redditish-border-highlight-color);
+    opacity: 1;
+  }
+}
+
+// The footer's own Watching control would sit a few lines under the one in
+// the replies header on a short topic. Keep it only when the topic is long
+// enough that the header has scrolled well out of reach (or isn't loaded).
+.regular:has(.wbo-thread-replies__head):not(
+    :has(.post-stream > [data-post-number]:nth-of-type(8))
+  )
+  #topic-footer-buttons {
+  display: none;
+}
+
+// It no longer needs its explanation sentence either way.
+#topic-footer-buttons .topic-notifications-button .reason .text {
+  display: none;
+}
+
+// ── Images in posts ─────────────────────────────────────────────────────────
+// A large image that is narrower than the post sits centred on a blurred,
+// faded copy of itself, like the feed's thumbnails (topic-list.scss). The
+// copy's URL is handed over as --wbo-media-bg by api-initializers/
+// wbo-thread.gjs, which also adds the class.
+.cooked .lightbox-wrapper.wbo-media-well {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--wbo-radius);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--wbo-media-bg) center / cover no-repeat;
+    filter: blur(24px);
+    opacity: 0.5;
+    transform: scale(1.2); // hide the blur's soft edges
+  }
+
+  a.lightbox {
+    position: relative;
+    display: block;
+
+    // Opaque, so a transparent PNG shows the card colour, not the blur.
+    background: var(--secondary);
+  }
+
+  img {
+    display: block;
+  }
+}
+
+// ── Topic progress ──────────────────────────────────────────────────────────
+// "1 / 1" on a topic with a single post is noise. (The admin wrench beside
+// it stays.)
+.container.posts:not(
+    :has(.post-stream > [data-post-number] ~ [data-post-number])
+  )
+  #topic-progress {
+  display: none;
+}
+
+// ── More topics: compact rows ───────────────────────────────────────────────
+// Under a topic the suggested list is "what next", not the feed: one card of
+// compact rows (meta, title, reply count; a small thumbnail at the right)
+// rather than a stack of full feed cards. Same markup as the feed
+// (connectors/topic-list-item/item.gjs), laid out differently.
+.more-topics__container {
+  .more-topics__list-title {
+    padding-left: 0; // flush with the card under it
+  }
+
+  .topic-list-body {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--redditish-border-color);
+    border-radius: var(--wbo-card-radius);
+    background: var(--secondary);
+  }
+
+  .topic-list-item + .topic-list-item .custom-topic-layout {
+    border-top: 1px solid var(--redditish-border-color);
+  }
+
+  .custom-topic-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "meta thumb"
+      "title thumb"
+      "tags thumb"
+      "bar thumb";
+    column-gap: 16px;
+    align-items: start;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    .discourse-no-touch &:hover {
+      background: rgb(var(--wbo-fg-rgb), 0.04);
+    }
+
+    &_meta {
+      grid-area: meta;
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      grid-area: title;
+      font-size: var(--font-up-1);
+    }
+
+    .link-bottom-line {
+      grid-area: tags;
+    }
+
+    &_excerpt {
+      display: none;
+    }
+
+    &_bottom-bar {
+      grid-area: bar;
+      padding: 4px 0 0;
+
+      .share-toggle {
+        display: none;
+      }
+    }
+
+    &_image {
+      grid-area: thumb;
+      width: 96px;
+      height: 72px;
+      margin: 0;
+      border-radius: var(--wbo-radius-sm);
+
+      // Clicking the row opens the topic; nothing in a 96px thumbnail is a
+      // control of its own (not even a video's play button).
+      pointer-events: none;
+
+      img,
+      &:not([style]) img {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        aspect-ratio: auto;
+        object-fit: cover;
+      }
+
+      img.custom-topic-layout_image-bg,
+      .youtube-play-btn {
+        display: none;
+      }
+
+      .youtube-thumbnail,
+      .youtube-thumbnail img {
+        height: 100%;
+      }
+
+      @media screen and (width <= 719px) {
+        width: 80px;
+        height: 60px;
+      }
+    }
+  }
+}
+
+// ── "See all unread" / "Browse category" (components/wbo-thread-more.gjs) ───
+// Replaces core's sentence ("There are 25 unread topics remaining, or browse
+// other topics in …") on regular topics; private messages keep core's.
+.archetype-regular .more-topics__browse-more {
+  display: none;
+}
+
+.wbo-thread-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+
+  @include custom-topic-width;
+
+  // Links styled as .btn don't get core's pill radius or a <button>'s
+  // padding (same fix as the About panel's buttons, scss/community.scss).
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 44px;
+    border-radius: var(--d-button-border-radius);
+    text-decoration: none;
+  }
+
+  // The category's colour square, as in the feed's meta line.
+  &__dot {
+    flex-shrink: 0;
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 2px;
+  }
+
+  @media screen and (width <= 719px) {
+    flex-direction: column;
+
+    .btn {
+      justify-content: center;
+    }
+  }
+}

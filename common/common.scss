@@ -11,6 +11,11 @@
   --d-nav-underline-height: 0;
   --wbo-card-radius: 10px;
 
+  // Topic pages: the posts column is as wide as the feed (832px, see the
+  // feed grid below); the timeline keeps core's 8em beside it.
+  --wbo-thread-max-width: 832px;
+  --wbo-thread-rail: 128px;
+
   // Topic titles in lists: 550 at 110% width, like WordPress's event card
   // titles. Pinned for read and unread so state doesn't change the weight.
   --topic-title-font-weight: 550;
@@ -56,13 +61,32 @@ body {
   }
 }
 
+// Everything on a topic page that lines up with the posts: the title card,
+// the footer row, "more topics". The posts themselves sit in the middle column
+// of .container.posts' grid (scss/thread.scss): centred, as wide as the feed,
+// with the timeline's rail to the right. This resolves to that column's left
+// edge and width from the same two numbers, so the blocks stack flush.
 @mixin custom-topic-width {
-  width: calc(100% - 8em);
+  box-sizing: border-box;
+  width: min(
+    var(--wbo-thread-max-width),
+    calc(100% - var(--wbo-thread-rail))
+  );
+  margin-left: max(
+    0px,
+    min(
+      calc(100% - var(--wbo-thread-max-width) - var(--wbo-thread-rail)),
+      calc((100% - var(--wbo-thread-max-width)) / 2)
+    )
+  );
 
+  // Core docks the timeline as a pill here; the column takes the full width.
   @media screen and (width <= 924px) {
     // incorrect lint rule, see: https://github.com/stylelint-scss/stylelint-config-recommended-scss/issues/369
     /* stylelint-disable-next-line no-invalid-position-declaration */
     width: 100%;
+    /* stylelint-disable-next-line no-invalid-position-declaration */
+    margin-left: 0;
   }
 }
 
@@ -84,6 +108,7 @@ body {
 @import "tag";
 @import "topic";
 @import "topic-list";
+@import "thread";
 @import "user";
 @import "wbo-site-nav";
 @import "wbo-user-menu";
