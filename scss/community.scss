@@ -372,8 +372,10 @@ $wbo-phone-bp: 719px; // matches $wbo-nav-mobile-breakpoint
     gap: 0.25em;
     min-width: 0;
 
+    // (Right too: the last tab's padding can run into the band's own, which
+    // is what lets "Unread (25)" fit beside the others on a 360px phone.)
     @media screen and (width <= $wbo-phone-bp) {
-      margin-left: -12px;
+      margin-inline: -12px;
     }
   }
 
