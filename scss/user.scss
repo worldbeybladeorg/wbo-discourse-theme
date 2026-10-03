@@ -41,7 +41,9 @@
 // they only redirect to WordPress's Settings (wbo-preferences-redirect.js
 // sets the body class, and only while the redirect is switched on). The
 // Notifications page itself still opens from WordPress's "Turn on for this
-// device" link. Calendar goes for everyone: the feature is not used.
+// device" link. Calendar and Navigation menu go for everyone: the calendar
+// feature is not used, and Navigation menu is two sidebar checkboxes
+// nobody will look for (the page still opens by direct link).
 .wbo-own-user-page {
   .user-nav__preferences-profile,
   .user-nav__preferences-emails,
@@ -51,7 +53,8 @@
   }
 }
 
-.user-nav__preferences-calendar-subscriptions {
+.user-nav__preferences-calendar-subscriptions,
+.user-nav__preferences-navigation-menu {
   display: none !important;
 }
 
