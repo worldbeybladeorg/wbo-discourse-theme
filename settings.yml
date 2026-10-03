@@ -16,6 +16,10 @@ wp_base_url:
   default: "https://worldbeyblade.org"
   description: "WordPress site URL (no trailing slash). Used for the logo link, the account panel's links, and its data (/wp-json/wbo/v1/user-menu). Set to https://wbo.local on the local dev instance."
 
+redirect_preferences_to_wordpress:
+  default: true
+  description: "Send members from their own forum Preferences pages (Profile, Emails, Notifications, Tracking) to the WordPress Settings page. Two-factor, Security, Account, Users, Interface and Navigation menu always stay on the forum. Turn off to use the forum's Preferences pages as normal."
+
 about_heading:
   default: "About WBO Community"
   description: "About panel: heading of the first box (right sidebar on desktop, About tab on mobile)."

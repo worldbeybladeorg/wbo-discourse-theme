@@ -6,9 +6,10 @@
 }
 
 // Hide user-profile nav items WBO's setup doesn't surface:
-//   • Preferences — replaced by WordPress-side /settings/. The endpoint
-//     still works if a user pastes the URL directly, but nothing links
-//     to it from the WBO UX.
+//   • Preferences — replaced by WordPress-side /settings/. The mirrored
+//     pages redirect there (api-initializers/wbo-preferences-redirect.js);
+//     the rest (2FA, security, linked accounts…) still open by direct
+//     link, which is how WordPress's "Manage" links reach them.
 //   • Invites — invite feature isn't in use.
 //   • Summary — mostly noise; the other tabs already surface anything
 //     interesting.
