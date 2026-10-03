@@ -22,6 +22,13 @@
   display: none !important;
 }
 
+// Users preferences: no "allow personal messages" switches. WBO sends
+// members things they need to see (event changes, cancellations, staff
+// requests) as personal messages, so turning them off is not offered.
+.user-preferences .control-group.private-messages {
+  display: none;
+}
+
 .horizontal-overflow-nav {
   .nav-pills > li > a,
   .nav-pills > li button {

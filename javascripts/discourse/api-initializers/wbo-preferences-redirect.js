@@ -49,10 +49,22 @@ export default apiInitializer((api) => {
 
   const router = api.container.lookup("service:router");
 
+  // WordPress links here with ?forum=1 for the one thing on a mirrored page
+  // it cannot do itself: "Enable Notifications", a browser permission that
+  // belongs to the forum's address. That page load stays put (it is the only
+  // navigation with nothing before it); any click after it redirects as
+  // usual.
+  const openedForForum = new URLSearchParams(window.location.search).has(
+    "forum"
+  );
+
   router.on("routeWillChange", (transition) => {
     const to = transition.to;
     const section = to && WP_SECTION[to.name];
     if (!section || transition.isAborted) {
+      return;
+    }
+    if (openedForForum && !transition.from) {
       return;
     }
 
