@@ -29,6 +29,14 @@
   display: none;
 }
 
+// Account preferences: no "Delete My Account" button. It removes only the
+// forum account and leaves the WordPress one behind, half-linked. Deletion
+// is a support request from WordPress's Settings page, handled by staff
+// across both.
+.user-preferences .control-group.delete-account {
+  display: none;
+}
+
 .horizontal-overflow-nav {
   .nav-pills > li > a,
   .nav-pills > li button {
