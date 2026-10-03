@@ -93,4 +93,15 @@ export default apiInitializer((api) => {
       window.location.replace(url);
     }
   });
+
+  // Mark the member's own /u/name pages, so scss/user.scss can hide the
+  // Preferences tabs that would only bounce them to WordPress. Staff looking
+  // at another member keep every tab - those pages still work for them.
+  router.on("routeDidChange", (transition) => {
+    const username = routeUsername(transition.to);
+    document.body.classList.toggle(
+      "wbo-own-user-page",
+      !!username && username.toLowerCase() === user.username_lower
+    );
+  });
 });

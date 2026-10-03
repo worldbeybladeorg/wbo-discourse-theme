@@ -37,6 +37,24 @@
   display: none;
 }
 
+// Preferences tabs. On a member's own pages the mirrored ones are gone -
+// they only redirect to WordPress's Settings (wbo-preferences-redirect.js
+// sets the body class, and only while the redirect is switched on). The
+// Notifications page itself still opens from WordPress's "Turn on for this
+// device" link. Calendar goes for everyone: the feature is not used.
+.wbo-own-user-page {
+  .user-nav__preferences-profile,
+  .user-nav__preferences-emails,
+  .user-nav__preferences-notifications,
+  .user-nav__preferences-tracking {
+    display: none !important;
+  }
+}
+
+.user-nav__preferences-calendar-subscriptions {
+  display: none !important;
+}
+
 .horizontal-overflow-nav {
   .nav-pills > li > a,
   .nav-pills > li button {
